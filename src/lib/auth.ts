@@ -1,0 +1,35 @@
+import { cookies } from "next/headers";
+import { createHmac, randomBytes } from "crypto";
+import { db } from "./db";
+import type { Role } from "@prisma/client";
+import { redirect } from "next/navigation";
+
+const COOKIE_NAME = "edugrade_session";
+const SESSION_DAYS = 14;
+function sessionSecret() { if (process.env.NODE_ENV === "production" && !process.env.AUTH_SECRET) throw new Error("AUTH_SECRET is required in production."); return process.env.AUTH_SECRET ?? "development-only-change-me"; }
+const hash = (token: string) => createHmac("sha256", sessionSecret()).update(token).digest("hex");
+
+export async function createSession(userId: string) {
+  const token = randomBytes(32).toString("base64url");
+  const expiresAt = new Date(Date.now() + SESSION_DAYS * 86400000);
+  await db.session.create({ data: { userId, tokenHash: hash(token), expiresAt } });
+  (await cookies()).set(COOKIE_NAME, token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", expires: expiresAt });
+}
+export async function destroySession() {
+  const store = await cookies(); const token = store.get(COOKIE_NAME)?.value;
+  if (token) await db.session.deleteMany({ where: { tokenHash: hash(token) } });
+  store.delete(COOKIE_NAME);
+}
+export async function getCurrentUser() {
+  const token = (await cookies()).get(COOKIE_NAME)?.value;
+  if (!token) return null;
+  const session = await db.session.findUnique({ where: { tokenHash: hash(token) }, include: { user: { include: { teacherProfile: true, studentProfile: true } } } });
+  if (!session || session.expiresAt < new Date()) return null;
+  return session.user;
+}
+export async function requireUser(role?: Role) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  if (role && user.role !== role) redirect(user.role === "TEACHER" ? "/teacher" : "/student");
+  return user;
+}

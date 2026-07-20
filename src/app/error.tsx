@@ -1,0 +1,5 @@
+"use client";
+import { useEffect } from "react";
+import Link from "next/link";
+import { AlertTriangle } from "lucide-react";
+export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) { useEffect(() => { console.error(error); }, [error]); return <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: "1rem" }}><div className="card card-pad" style={{ maxWidth: 520, textAlign: "center" }}><AlertTriangle size={38} color="var(--coral)" style={{ margin: "auto" }}/><h1 className="display" style={{ fontSize: "2.5rem", margin: "1rem 0 .5rem" }}>We hit an unexpected snag.</h1><p style={{ color: "var(--muted)", lineHeight: 1.6 }}>Your data is safe. Try loading this view again; if the problem continues, return to your dashboard.</p><div style={{ display: "flex", gap: ".6rem", justifyContent: "center" }}><button className="btn btn-primary" onClick={reset}>Try again</button><Link className="btn btn-secondary" href="/">Go home</Link></div></div></main>; }
