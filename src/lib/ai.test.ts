@@ -12,7 +12,9 @@ describe("AI service fallback", () => {
   });
   it("does not frame student doubt help as a final answer", async () => {
     vi.stubEnv("AI_GATEWAY_API_KEY", "");
-    const result = await generateAI({ type: "DOUBT_HELP", topic: "Sacrificing ratio", grade: "12" });
+    const result = await generateAI({ type: "DOUBT_HELP", topic: "Sacrificing ratio", grade: "12", audience: "student" });
     expect(result.content).toContain("without giving away assessed work");
+    expect(result.content).toContain("Learning safety");
+    expect(result.content).not.toContain("Teacher review");
   });
 });

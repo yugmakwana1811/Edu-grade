@@ -23,6 +23,12 @@ export async function storedFileResponse(
       return NextResponse.json({ error: "File not found" }, { status: 404 });
     const headers = new Headers();
     blob.headers.forEach((value, key) => headers.set(key, value));
+    const contentType = headers.get("content-type");
+    if (
+      contentType?.toLowerCase().startsWith("text/") &&
+      !/charset=/i.test(contentType)
+    )
+      headers.set("Content-Type", `${contentType}; charset=utf-8`);
     headers.set("Cache-Control", "private, max-age=300");
     headers.set(
       "Content-Disposition",
@@ -35,6 +41,9 @@ export async function storedFileResponse(
       "[EduGrade] Private file delivery failed",
       error instanceof Error ? error.message : "Unknown storage error",
     );
-    return NextResponse.json({ error: "File could not be loaded" }, { status: 502 });
+    return NextResponse.json(
+      { error: "File could not be loaded" },
+      { status: 502 },
+    );
   }
 }

@@ -256,6 +256,7 @@ export async function generateContentAction(form: FormData) {
   const generated = await generateAI({
     ...parsed.data,
     type: parsed.data.type as AIContentType,
+    audience: user.role === "STUDENT" ? "student" : "teacher",
   });
   const record = await db.aIContentGeneration.create({
     data: {
@@ -364,10 +365,11 @@ export async function submitWorkAction(form: FormData) {
   const assignmentId = text(form, "assignmentId");
   const noteResult = submissionNoteSchema.safeParse(text(form, "note"));
   if (!noteResult.success)
-    fail(
-      `/student/assignments/${assignmentId}`,
-      noteResult.error.issues[0]?.message ?? "Check the submission note.",
-    );
+    return {
+      ok: false as const,
+      error:
+        noteResult.error.issues[0]?.message ?? "Check the submission note.",
+    };
   const note = noteResult.data;
   const assignment = await db.assignment.findFirst({
     where: {
@@ -383,31 +385,34 @@ export async function submitWorkAction(form: FormData) {
       },
     },
   });
-  if (!assignment) fail("/student/assignments", "Assignment not found.");
+  if (!assignment)
+    return { ok: false as const, error: "Assignment not found." };
   if (
     assignment.submissions[0] &&
     assignment.submissions[0].status !== "DRAFT"
   )
-    fail(
-      `/student/assignments/${assignmentId}`,
-      "This submission is already with your teacher and cannot be replaced.",
-    );
+    return {
+      ok: false as const,
+      error:
+        "This submission is already with your teacher and cannot be replaced.",
+    };
   let rawPages: unknown;
   try {
     rawPages = JSON.parse(text(form, "pagesJson"));
   } catch {
-    fail(
-      `/student/assignments/${assignmentId}`,
-      "The uploaded-page list is invalid.",
-    );
+    return {
+      ok: false as const,
+      error: "The uploaded-page list is invalid.",
+    };
   }
   const pagesResult = uploadedPagesSchema.safeParse(rawPages);
   if (!pagesResult.success)
-    fail(
-      `/student/assignments/${assignmentId}`,
-      pagesResult.error.issues[0]?.message ??
+    return {
+      ok: false as const,
+      error:
+        pagesResult.error.issues[0]?.message ??
         "Check the uploaded answer pages.",
-    );
+    };
   try {
     const uploaded: Array<{
       pageNumber: number;
@@ -479,9 +484,9 @@ export async function submitWorkAction(form: FormData) {
       });
     });
   } catch (error) {
-    fail(`/student/assignments/${assignmentId}`, messageOf(error));
+    return { ok: false as const, error: messageOf(error) };
   }
-  redirect(`/student/assignments/${assignmentId}?success=Submission received`);
+  return { ok: true as const };
 }
 
 export async function generateFeedbackAction(form: FormData) {
@@ -502,6 +507,7 @@ export async function generateFeedbackAction(form: FormData) {
     type: "FEEDBACK",
     topic: submission.assignment.topic ?? submission.assignment.title,
     grade: submission.assignment.class.grade,
+    audience: "teacher",
     details: `Learner: ${submission.student.user.name}. Use supportive, specific language. Do not decide marks.`,
   });
   await db.feedback.create({
@@ -533,6 +539,31 @@ export async function saveReviewAction(form: FormData) {
       `/teacher/review/${text(form, "submissionId")}`,
       parsed.error.issues[0]?.message ?? "Check the review.",
     );
+  const pendingSuggestion = await db.feedback.findFirst({
+    where: {
+      submissionId: submission.id,
+      isAiSuggested: true,
+      approved: false,
+    },
+    orderBy: { createdAt: "desc" },
+    select: { id: true },
+  });
+  const feedbackWrite = pendingSuggestion
+    ? db.feedback.updateMany({
+        where: {
+          submissionId: submission.id,
+          isAiSuggested: true,
+          approved: false,
+        },
+        data: { content: parsed.data.feedback, approved: true },
+      })
+    : db.feedback.create({
+        data: {
+          submissionId: submission.id,
+          content: parsed.data.feedback,
+          approved: true,
+        },
+      });
   await db.$transaction([
     db.result.upsert({
       where: { submissionId: submission.id },
@@ -548,13 +579,7 @@ export async function saveReviewAction(form: FormData) {
         publishedAt: parsed.data.publish ? new Date() : null,
       },
     }),
-    db.feedback.create({
-      data: {
-        submissionId: submission.id,
-        content: parsed.data.feedback,
-        approved: true,
-      },
-    }),
+    feedbackWrite,
     db.submission.update({
       where: { id: submission.id },
       data: { status: parsed.data.publish ? "PUBLISHED" : "REVIEWED" },
