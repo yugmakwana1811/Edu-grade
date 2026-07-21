@@ -6,16 +6,13 @@ import {
   Download,
   FileCheck2,
   LockKeyhole,
-  Send,
 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Alert, PageHeader } from "@/components/ui";
 import { formatDateTime } from "@/lib/utils";
-import { UploadField } from "@/components/upload-field";
-import { SubmitButton } from "@/components/submit-button";
-import { submitWorkAction } from "@/app/actions";
+import { SubmissionUploadForm } from "@/components/submission-upload-form";
 export default async function StudentAssignment({
   params,
   searchParams,
@@ -263,40 +260,7 @@ export default async function StudentAssignment({
                 Preview every page before submitting. Your teacher will see the
                 pages in the order shown.
               </p>
-              <form
-                action={submitWorkAction}
-                style={{ display: "grid", gap: "1rem", marginTop: "1rem" }}
-              >
-                <input type="hidden" name="assignmentId" value={a.id} />
-                <UploadField />
-                <label>
-                  <span className="label">
-                    Note to teacher <span className="hint">(optional)</span>
-                  </span>
-                  <textarea
-                    className="field"
-                    name="note"
-                    maxLength={500}
-                    placeholder="Mention a page order detail or technical issue—never include sensitive information."
-                  />
-                </label>
-                <label
-                  style={{
-                    display: "flex",
-                    gap: ".6rem",
-                    alignItems: "flex-start",
-                  }}
-                >
-                  <input type="checkbox" required />
-                  <span className="hint">
-                    I checked that every page is readable, in order, and ready
-                    for final submission.
-                  </span>
-                </label>
-                <SubmitButton pendingText="Uploading pages…">
-                  <Send size={16} /> Submit final answer pages
-                </SubmitButton>
-              </form>
+              <SubmissionUploadForm assignmentId={a.id} />
             </div>
           )}
         </section>

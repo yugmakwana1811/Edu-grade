@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { assignmentSchema, attendanceDateSchema, attendanceStatusSchema, generatedContentSchema, joinClassSchema, reviewSchema, submissionNoteSchema } from "./validation";
+import {
+  assignmentSchema,
+  attendanceDateSchema,
+  attendanceStatusSchema,
+  generatedContentSchema,
+  joinClassSchema,
+  reviewSchema,
+  submissionNoteSchema,
+  uploadedPagesSchema,
+} from "./validation";
 
 describe("EduGrade validation", () => {
   it("normalizes valid class codes", () => { expect(joinClassSchema.parse({ code: "acc12d" }).code).toBe("ACC12D"); });
@@ -10,4 +19,20 @@ describe("EduGrade validation", () => {
   it("rejects forged attendance statuses", () => { expect(attendanceStatusSchema.safeParse("REMOTE").success).toBe(false); });
   it("rejects empty generated content", () => { expect(generatedContentSchema.safeParse({ id: "gen-1", output: " ", approved: false }).success).toBe(false); });
   it("limits student submission notes", () => { expect(submissionNoteSchema.safeParse("x".repeat(501)).success).toBe(false); });
+  it("accepts ordered uploaded answer pages", () => {
+    expect(
+      uploadedPagesSchema.safeParse([
+        { url: "https://example.com/page-1.png", name: "page-1.png", pageNumber: 1 },
+        { url: "https://example.com/page-2.png", name: "page-2.png", pageNumber: 2 },
+      ]).success,
+    ).toBe(true);
+  });
+  it("rejects duplicate or unordered answer pages", () => {
+    expect(
+      uploadedPagesSchema.safeParse([
+        { url: "https://example.com/page-2.png", name: "page-2.png", pageNumber: 2 },
+        { url: "https://example.com/page-1.png", name: "page-1.png", pageNumber: 1 },
+      ]).success,
+    ).toBe(false);
+  });
 });

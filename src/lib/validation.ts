@@ -101,3 +101,23 @@ export const generatedContentSchema = z.object({
 export const submissionNoteSchema = z
   .string()
   .max(500, "The note must be 500 characters or fewer");
+export const uploadedPageSchema = z.object({
+  url: z.url(),
+  name: z.string().min(1).max(255),
+  pageNumber: z.number().int().min(1).max(20),
+});
+export const uploadedPagesSchema = z
+  .array(uploadedPageSchema)
+  .min(1, "Upload at least one answer page")
+  .max(20, "Upload no more than 20 pages")
+  .superRefine((pages, ctx) => {
+    const numbers = new Set(pages.map((page) => page.pageNumber));
+    if (
+      numbers.size !== pages.length ||
+      pages.some((page, index) => page.pageNumber !== index + 1)
+    )
+      ctx.addIssue({
+        code: "custom",
+        message: "Answer pages must be in order without duplicates",
+      });
+  });

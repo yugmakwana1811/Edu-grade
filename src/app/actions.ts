@@ -18,9 +18,10 @@ import {
   resourceSchema,
   reviewSchema,
   submissionNoteSchema,
+  uploadedPagesSchema,
 } from "@/lib/validation";
 import { generateAI } from "@/lib/ai";
-import { storeFile, validateFile } from "@/lib/storage";
+import { storeFile, validateFile, verifyPrivateUpload } from "@/lib/storage";
 import type { AIContentType } from "@prisma/client";
 
 function text(form: FormData, key: string) {
@@ -51,9 +52,6 @@ export async function loginAction(form: FormData) {
     )
       fail("/login", "Email or password is incorrect.");
     await createSession(user.id);
-    await db.activityLog.create({
-      data: { userId: user.id, action: "Signed in", entityType: "Session" },
-    });
   } catch (error) {
     if (error && typeof error === "object" && "digest" in error) throw error;
     console.error(
@@ -63,6 +61,16 @@ export async function loginAction(form: FormData) {
     fail(
       "/login",
       "Sign-in is temporarily unavailable because the data service is not connected. Please try again shortly.",
+    );
+  }
+  try {
+    await db.activityLog.create({
+      data: { userId: user.id, action: "Signed in", entityType: "Session" },
+    });
+  } catch (error) {
+    console.error(
+      "[EduGrade] Sign-in activity logging failed",
+      error instanceof Error ? error.message : "Unknown error",
     );
   }
   redirect(user.role === "TEACHER" ? "/teacher" : "/student");
@@ -361,29 +369,42 @@ export async function submitWorkAction(form: FormData) {
     },
   });
   if (!assignment) fail("/student/assignments", "Assignment not found.");
-  const files = form
-    .getAll("pages")
-    .filter((f): f is File => f instanceof File && f.size > 0);
-  if (!files.length)
+  let rawPages: unknown;
+  try {
+    rawPages = JSON.parse(text(form, "pagesJson"));
+  } catch {
     fail(
       `/student/assignments/${assignmentId}`,
-      "Upload at least one answer-page image.",
+      "The uploaded-page list is invalid.",
     );
-  if (files.length > 20)
+  }
+  const pagesResult = uploadedPagesSchema.safeParse(rawPages);
+  if (!pagesResult.success)
     fail(
       `/student/assignments/${assignmentId}`,
-      "Upload no more than 20 pages.",
+      pagesResult.error.issues[0]?.message ??
+        "Check the uploaded answer pages.",
     );
   try {
-    files.forEach((file) => validateFile(file, true));
-    const uploaded: Array<{ pageNumber: number; name: string; url: string; mimeType: string; size: number }> = [];
-    for (const [index, file] of files.entries()) {
+    const uploaded: Array<{
+      pageNumber: number;
+      name: string;
+      url: string;
+      mimeType: string;
+      size: number;
+    }> = [];
+    for (const page of pagesResult.data) {
+      const metadata = await verifyPrivateUpload(
+        page.url,
+        `submissions/${assignmentId}/`,
+        true,
+      );
       uploaded.push({
-        pageNumber: index + 1,
-        name: file.name,
-        url: await storeFile(file, "submissions"),
-        mimeType: file.type,
-        size: file.size,
+        pageNumber: page.pageNumber,
+        name: page.name.replace(/[^a-zA-Z0-9._ -]/g, "-").slice(0, 255),
+        url: metadata.url,
+        mimeType: metadata.contentType,
+        size: metadata.size,
       });
     }
     const submission = await db.$transaction(async (tx) => {
@@ -412,7 +433,7 @@ export async function submitWorkAction(form: FormData) {
         action: "Submitted answer pages",
         entityType: "Submission",
         entityId: submission.id,
-        metadata: { pageCount: files.length },
+        metadata: { pageCount: uploaded.length },
       },
     });
   } catch (error) {

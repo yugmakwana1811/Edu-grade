@@ -147,7 +147,7 @@ export default async function Resources({
                 accept=".pdf,.txt,image/jpeg,image/png,image/webp"
                 required
               />
-              <span className="hint">Maximum 10 MB</span>
+              <span className="hint">Maximum 3 MB</span>
             </label>
             <SubmitButton pendingText="Uploading…">
               <UploadCloud size={16} /> Upload resource
