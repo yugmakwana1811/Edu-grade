@@ -175,7 +175,11 @@ export default async function NewAssignment({
             </span>
           </span>
         </label>
-        <SubmitButton pendingText="Saving assignment…">
+        <SubmitButton
+          pendingText="Saving assignment…"
+          confirmWhenChecked="publish"
+          confirmMessage="Create and publish this assignment now? Enrolled students will immediately see it."
+        >
           <Save size={16} /> Save assignment
         </SubmitButton>
       </form>

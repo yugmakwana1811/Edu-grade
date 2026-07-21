@@ -57,7 +57,10 @@ export default async function AssignmentDetail({
           a.status === "DRAFT" ? (
             <form action={publishAssignmentAction}>
               <input type="hidden" name="id" value={a.id} />
-              <SubmitButton>
+              <SubmitButton
+                pendingText="Publishing…"
+                confirmMessage="Publish this assignment now? Enrolled students will immediately see the instructions, deadline, and attached paper."
+              >
                 <Send size={16} /> Publish to students
               </SubmitButton>
             </form>

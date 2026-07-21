@@ -221,11 +221,19 @@ export async function publishAssignmentAction(form: FormData) {
   const user = await requireUser("TEACHER");
   const id = text(form, "id");
   const assignment = await db.assignment.findFirst({
-    where: { id, class: { teacherId: user.teacherProfile!.id } },
+    where: {
+      id,
+      status: "DRAFT",
+      class: { teacherId: user.teacherProfile!.id },
+    },
   });
-  if (!assignment) fail("/teacher/assignments", "Assignment not found.");
+  if (!assignment)
+    fail(
+      "/teacher/assignments",
+      "The assignment was not found or is already published.",
+    );
   await db.assignment.update({ where: { id }, data: { status: "PUBLISHED" } });
-  revalidatePath(`/teacher/assignments/${id}`);
+  redirect(`/teacher/assignments/${id}?success=Assignment published`);
 }
 
 export async function generateContentAction(form: FormData) {
