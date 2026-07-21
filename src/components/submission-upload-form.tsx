@@ -2,7 +2,6 @@
 
 import { upload } from "@vercel/blob/client";
 import { LoaderCircle, Send } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { submitWorkAction } from "@/app/actions";
 import { UploadField } from "./upload-field";
@@ -15,7 +14,6 @@ export function SubmissionUploadForm({
 }: {
   assignmentId: string;
 }) {
-  const router = useRouter();
   const [files, setFiles] = useState<File[]>([]);
   const [pending, setPending] = useState(false);
   const [progress, setProgress] = useState("");
@@ -65,10 +63,9 @@ export function SubmissionUploadForm({
         setProgress("");
         return;
       }
-      router.push(
+      window.location.assign(
         `/student/assignments/${assignmentId}?success=${encodeURIComponent("Submission received")}`,
       );
-      router.refresh();
     } catch (caught) {
       setError(
         caught instanceof Error
