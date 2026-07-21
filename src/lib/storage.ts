@@ -1,3 +1,4 @@
+import "server-only";
 import { put } from "@vercel/blob";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
@@ -11,11 +12,11 @@ export function validateFile(file: File, imageOnly = false) {
   if (file.size > MAX_SIZE) throw new Error("Files must be 10 MB or smaller.");
   if (!ALLOWED.has(file.type) || (imageOnly && !file.type.startsWith("image/"))) throw new Error(imageOnly ? "Upload a JPG, PNG, or WebP image." : "Upload a JPG, PNG, WebP, PDF, or text file.");
 }
-export async function storeFile(file: File, folder: string, privateAccess = false) {
+export async function storeFile(file: File, folder: string) {
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
   const filename = `${folder}/${randomUUID()}-${safeName}`;
   if (process.env.BLOB_READ_WRITE_TOKEN) {
-    const blob = await put(filename, file, { access: privateAccess ? "private" : "public", token: process.env.BLOB_READ_WRITE_TOKEN, addRandomSuffix: false });
+    const blob = await put(filename, file, { access: "private", token: process.env.BLOB_READ_WRITE_TOKEN, addRandomSuffix: false });
     return blob.url;
   }
   if (process.env.NODE_ENV === "production") throw new Error("File storage is not configured. Set BLOB_READ_WRITE_TOKEN.");

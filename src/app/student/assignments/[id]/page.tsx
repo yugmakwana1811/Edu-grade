@@ -113,7 +113,7 @@ export default async function StudentAssignment({
           )}
           {a.attachments.map((f) => (
             <a
-              href={f.url}
+              href={`/api/files/assignment/${f.id}`}
               target="_blank"
               rel="noreferrer"
               key={f.id}

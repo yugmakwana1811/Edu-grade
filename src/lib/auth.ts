@@ -1,3 +1,4 @@
+import "server-only";
 import { cookies } from "next/headers";
 import { createHmac, randomBytes } from "crypto";
 import { db } from "./db";

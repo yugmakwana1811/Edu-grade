@@ -1,3 +1,4 @@
+import "server-only";
 import type { AIContentType } from "@prisma/client";
 
 export type GenerateInput = { type: AIContentType; topic: string; grade: string; details?: string; context?: string };
