@@ -153,11 +153,6 @@ export default async function ReviewDetail({
               style={{ display: "grid", gap: ".9rem", marginTop: "1rem" }}
             >
               <input type="hidden" name="submissionId" value={s.id} />
-              <input
-                type="hidden"
-                name="maxMarks"
-                value={s.assignment.maxMarks}
-              />
               <label>
                 <span className="label">Marks awarded</span>
                 <div

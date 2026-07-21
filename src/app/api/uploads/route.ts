@@ -34,9 +34,21 @@ export async function POST(request: Request) {
               enrollments: { some: { studentId: user.studentProfile!.id } },
             },
           },
-          select: { id: true },
+          select: {
+            id: true,
+            submissions: {
+              where: { studentId: user.studentProfile!.id },
+              select: { status: true },
+              take: 1,
+            },
+          },
         });
         if (!assignment) throw new Error("Assignment not found");
+        if (
+          assignment.submissions[0] &&
+          assignment.submissions[0].status !== "DRAFT"
+        )
+          throw new Error("Submission is already locked");
         const expectedPrefix = `submissions/${assignment.id}/`;
         if (!pathname.startsWith(expectedPrefix) || pathname.includes(".."))
           throw new Error("Invalid upload path");

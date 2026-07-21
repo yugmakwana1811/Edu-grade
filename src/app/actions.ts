@@ -367,8 +367,23 @@ export async function submitWorkAction(form: FormData) {
       status: "PUBLISHED",
       class: { enrollments: { some: { studentId: user.studentProfile!.id } } },
     },
+    include: {
+      submissions: {
+        where: { studentId: user.studentProfile!.id },
+        select: { status: true },
+        take: 1,
+      },
+    },
   });
   if (!assignment) fail("/student/assignments", "Assignment not found.");
+  if (
+    assignment.submissions[0] &&
+    assignment.submissions[0].status !== "DRAFT"
+  )
+    fail(
+      `/student/assignments/${assignmentId}`,
+      "This submission is already with your teacher and cannot be replaced.",
+    );
   let rawPages: unknown;
   try {
     rawPages = JSON.parse(text(form, "pagesJson"));
@@ -407,34 +422,53 @@ export async function submitWorkAction(form: FormData) {
         size: metadata.size,
       });
     }
-    const submission = await db.$transaction(async (tx) => {
-      const saved = await tx.submission.upsert({
+    await db.$transaction(async (tx) => {
+      const existing = await tx.submission.findUnique({
         where: {
           assignmentId_studentId: {
             assignmentId,
             studentId: user.studentProfile!.id,
           },
         },
-        update: { note, status: "DRAFT" },
-        create: { assignmentId, studentId: user.studentProfile!.id, note },
+        select: { id: true },
       });
-      await tx.submissionPage.deleteMany({ where: { submissionId: saved.id } });
+      let submissionId: string;
+      if (existing) {
+        const claimed = await tx.submission.updateMany({
+          where: { id: existing.id, status: "DRAFT" },
+          data: { note, status: "SUBMITTED", submittedAt: new Date() },
+        });
+        if (claimed.count !== 1)
+          throw new Error(
+            "This submission is already with your teacher and cannot be replaced.",
+          );
+        submissionId = existing.id;
+      } else {
+        const created = await tx.submission.create({
+          data: {
+            assignmentId,
+            studentId: user.studentProfile!.id,
+            note,
+            status: "SUBMITTED",
+            submittedAt: new Date(),
+          },
+          select: { id: true },
+        });
+        submissionId = created.id;
+      }
+      await tx.submissionPage.deleteMany({ where: { submissionId } });
       await tx.submissionPage.createMany({
-        data: uploaded.map((page) => ({ ...page, submissionId: saved.id })),
+        data: uploaded.map((page) => ({ ...page, submissionId })),
       });
-      return tx.submission.update({
-        where: { id: saved.id },
-        data: { status: "SUBMITTED", submittedAt: new Date() },
+      await tx.activityLog.create({
+        data: {
+          userId: user.id,
+          action: "Submitted answer pages",
+          entityType: "Submission",
+          entityId: submissionId,
+          metadata: { pageCount: uploaded.length },
+        },
       });
-    });
-    await db.activityLog.create({
-      data: {
-        userId: user.id,
-        action: "Submitted answer pages",
-        entityType: "Submission",
-        entityId: submission.id,
-        metadata: { pageCount: uploaded.length },
-      },
     });
   } catch (error) {
     fail(`/student/assignments/${assignmentId}`, messageOf(error));
@@ -470,10 +504,19 @@ export async function generateFeedbackAction(form: FormData) {
 
 export async function saveReviewAction(form: FormData) {
   const user = await requireUser("TEACHER");
+  const submissionId = text(form, "submissionId");
+  const submission = await db.submission.findFirst({
+    where: {
+      id: submissionId,
+      assignment: { class: { teacherId: user.teacherProfile!.id } },
+    },
+    include: { assignment: { select: { maxMarks: true } } },
+  });
+  if (!submission) fail("/teacher/review", "Submission not found.");
   const parsed = reviewSchema.safeParse({
-    submissionId: text(form, "submissionId"),
+    submissionId,
     marks: text(form, "marks"),
-    maxMarks: text(form, "maxMarks"),
+    maxMarks: submission.assignment.maxMarks,
     feedback: text(form, "feedback"),
     publish: form.get("publish") === "on",
   });
@@ -482,13 +525,6 @@ export async function saveReviewAction(form: FormData) {
       `/teacher/review/${text(form, "submissionId")}`,
       parsed.error.issues[0]?.message ?? "Check the review.",
     );
-  const submission = await db.submission.findFirst({
-    where: {
-      id: parsed.data.submissionId,
-      assignment: { class: { teacherId: user.teacherProfile!.id } },
-    },
-  });
-  if (!submission) fail("/teacher/review", "Submission not found.");
   await db.$transaction([
     db.result.upsert({
       where: { submissionId: submission.id },
@@ -597,6 +633,13 @@ export async function submitQuizAction(form: FormData) {
         `/student/quizzes/${quiz.id}`,
         "Answer every question before submitting.",
       );
+    const options = Array.isArray(question.options)
+      ? question.options.filter(
+          (option): option is string => typeof option === "string",
+        )
+      : [];
+    if (!options.includes(answer))
+      fail(`/student/quizzes/${quiz.id}`, "One quiz answer is invalid.");
     answers[question.id] = answer;
     max += question.marks;
     if (answer === question.correctAnswer) score += question.marks;
