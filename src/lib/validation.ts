@@ -92,7 +92,7 @@ export const passwordChangeSchema = z
   });
 export const classSchema = z.object({
   name: z.string().min(3).max(80),
-  subject: z.string().min(2).max(60),
+  subject: z.string().min(2).max(80),
   grade: requiredGradeSchema,
   description: z.string().max(300).optional(),
 });

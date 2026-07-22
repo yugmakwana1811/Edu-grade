@@ -7,10 +7,7 @@ import {
 } from "@/app/actions";
 import { Alert, PageHeader, SafetyNote } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
-import {
-  GradeSelect,
-  SubjectInput,
-} from "@/components/education-selects";
+import { GradeSubjectFields } from "@/components/education-selects";
 import { normalizeCbseGrade } from "@/lib/education";
 import { aiProviderLabel } from "@/lib/ai-routing";
 export default async function AIHelp({
@@ -69,10 +66,9 @@ export default async function AIHelp({
                 <option value="EXPLANATION">Explain a concept</option>
               </select>
             </label>
-            <label>
-              <span className="label">Subject</span>
-              <SubjectInput defaultValue="General" />
-            </label>
+            <GradeSubjectFields
+              defaultGrade={normalizeCbseGrade(user.studentProfile?.grade)}
+            />
             <label>
               <span className="label">Topic or question</span>
               <input
@@ -82,12 +78,6 @@ export default async function AIHelp({
                 minLength={3}
                 defaultValue={topic ?? ""}
                 placeholder="Why does the sacrificing ratio matter?"
-              />
-            </label>
-            <label>
-              <span className="label">Class / grade</span>
-              <GradeSelect
-                defaultValue={normalizeCbseGrade(user.studentProfile?.grade)}
               />
             </label>
             <label>

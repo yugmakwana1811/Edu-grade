@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { Alert, EmptyState, PageHeader } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
 import { createClassAction } from "@/app/actions";
-import { GradeSelect } from "@/components/education-selects";
+import { GradeSubjectFields } from "@/components/education-selects";
 
 export default async function TeacherClasses({
   searchParams,
@@ -127,19 +127,10 @@ export default async function TeacherClasses({
                 required
               />
             </label>
-            <label>
-              <span className="label">Subject</span>
-              <input
-                className="field"
-                name="subject"
-                placeholder="Business Studies"
-                required
-              />
-            </label>
-            <label>
-              <span className="label">Grade</span>
-              <GradeSelect defaultValue="11" />
-            </label>
+            <GradeSubjectFields
+              defaultGrade="11"
+              gradeLabel="Grade"
+            />
             <label>
               <span className="label">
                 Description <span className="hint">(optional)</span>

@@ -9,8 +9,13 @@ describe("subject-aware AI routing", () => {
     ["Accountancy", "Goodwill valuation", AI_MODELS.balanced.id],
     ["Business Studies", "Marketing mix", AI_MODELS.balanced.id],
     ["English", "Poetry analysis", AI_MODELS.language.id],
+    ["Assamese", "Poetry analysis", AI_MODELS.language.id],
+    ["Tamil", "Grammar", AI_MODELS.language.id],
     ["History", "Nationalism in India", AI_MODELS.language.id],
     ["Social Science", "Indian democracy", AI_MODELS.language.id],
+    ["Psychology", "Learning theories", AI_MODELS.language.id],
+    ["Data Science", "Data visualisation", AI_MODELS.reasoning.id],
+    ["Taxation", "GST basics", AI_MODELS.balanced.id],
   ])("routes %s to its approved model", (subject, topic, expected) => {
     expect(selectAIModel({ subject, topic, type: "EXPLANATION" }).id).toBe(
       expected,

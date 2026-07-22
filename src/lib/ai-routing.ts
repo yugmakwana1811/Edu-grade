@@ -1,3 +1,5 @@
+import { isCbseLanguageSubject } from "./education";
+
 export const AI_MODELS = {
   reasoning: {
     id: "nvidia/nemotron-3-ultra-550b-a55b:free",
@@ -31,15 +33,16 @@ type RoutingInput = {
 };
 
 const stemPattern =
-  /\b(math(?:ematic)?s?|algebra|geometry|trigonometry|calculus|statistics|physics|chemistry|biology|science|computer|coding|programming|informatics)\b/i;
+  /\b(math(?:ematic)?s?|algebra|geometry|trigonometry|calculus|statistics|physics|chemistry|biology|biotechnology|science|computer|coding|programming|informatics|data science|artificial intelligence|engineering|electronics?|electrical|automotive|agriculture|horticulture|medical diagnostics|health care|web applications?|geospatial|pharmaceutical)\b/i;
 const commercePattern =
-  /\b(account(?:ancy|ing)?|business|commerce|economics?|entrepreneurship|finance|marketing)\b/i;
+  /\b(account(?:ancy|ing)?|book keeping|business|commerce|economics?|entrepreneurship|finance|financial markets?|marketing|salesmanship|retail|banking|insurance|taxation|office procedures|business administration)\b/i;
 const languageHumanitiesPattern =
-  /\b(english|hindi|sanskrit|language|literature|grammar|writing|history|geography|political|civics|social science|humanities|fine arts?|physical education)\b/i;
+  /\b(language|literature|grammar|writing|history|geography|political|civics|social science|humanities|psychology|sociology|legal studies|fine arts?|painting|music|dance|mass media|library|knowledge tradition|physical education|home science|tourism|photography|design)\b/i;
 
 export function selectAIModel(input: RoutingInput): AIModelConfig {
   const routingText = `${input.subject} ${input.topic}`;
   if (input.type === "ANNOUNCEMENT") return AI_MODELS.language;
+  if (isCbseLanguageSubject(input.subject)) return AI_MODELS.language;
   if (commercePattern.test(routingText)) return AI_MODELS.balanced;
   if (languageHumanitiesPattern.test(routingText)) return AI_MODELS.language;
   if (stemPattern.test(routingText)) return AI_MODELS.reasoning;

@@ -18,10 +18,7 @@ import {
 } from "@/app/actions";
 import { Alert, PageHeader, SafetyNote } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
-import {
-  GradeSelect,
-  SubjectInput,
-} from "@/components/education-selects";
+import { GradeSubjectFields } from "@/components/education-selects";
 import { aiProviderLabel } from "@/lib/ai-routing";
 
 const tools = [
@@ -137,16 +134,10 @@ export default async function AITools({
                 placeholder="e.g. Valuation of goodwill"
               />
             </label>
-            <label>
-              <span className="label">Subject</span>
-              <SubjectInput
-                defaultValue={user.teacherProfile?.subject ?? "General"}
-              />
-            </label>
-            <label>
-              <span className="label">Class / grade</span>
-              <GradeSelect defaultValue="12" />
-            </label>
+            <GradeSubjectFields
+              defaultGrade="12"
+              defaultSubject={user.teacherProfile?.subject ?? ""}
+            />
             <label>
               <span className="label">
                 Context <span className="hint">(optional)</span>
