@@ -67,10 +67,10 @@ export default function About() {
           }}
         >
           EduGrade AI is an AI-powered teacher assistant and classroom platform
-          designed around the complete teaching cycle—not only evaluation. It
-          helps teachers plan, teach, assign, collect, review, support,
-          communicate, and analyse while keeping professional judgment where it
-          belongs.
+          for CBSE Classes 6–12, designed around the complete teaching
+          cycle—not only evaluation. It helps teachers plan, teach, assign,
+          collect, review, support, communicate, and analyse while keeping
+          professional judgment where it belongs.
         </p>
         <div className="grid-auto" style={{ margin: "3rem 0" }}>
           {[

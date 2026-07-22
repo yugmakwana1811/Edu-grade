@@ -1,9 +1,11 @@
 import "server-only";
 import type { AIContentType } from "@prisma/client";
+import { getAIModelCandidates, type AIModelConfig } from "@/lib/ai-routing";
 
 export type GenerateInput = {
   type: AIContentType;
   topic: string;
+  subject: string;
   grade: string;
   details?: string;
   context?: string;
@@ -11,12 +13,8 @@ export type GenerateInput = {
 };
 export type GenerateResult = { content: string; provider: string };
 
-export const OPENROUTER_MODEL =
-  "nvidia/nemotron-3-ultra-550b-a55b:free" as const;
-
 const OPENROUTER_ENDPOINT =
   "https://openrouter.ai/api/v1/chat/completions" as const;
-const OPENROUTER_PROVIDER = `openrouter:${OPENROUTER_MODEL}` as const;
 
 const label: Record<AIContentType, string> = {
   LESSON_PLAN: "Lesson plan",
@@ -32,7 +30,7 @@ const label: Record<AIContentType, string> = {
 };
 
 function fallback(i: GenerateInput): string {
-  const head = `${label[i.type]}: ${i.topic} · Class ${i.grade}`;
+  const head = `${label[i.type]}: ${i.topic} · ${i.subject} · Class ${i.grade}`;
   const studentFacing = i.audience === "student";
   const safety = studentFacing
     ? "\n\nLearning safety: This is AI-assisted guidance and may contain errors. Check it against your class materials, show your own working, and ask your teacher when unsure."
@@ -66,54 +64,84 @@ export async function generateAI(
   if (!apiKey)
     return { content: fallback(input), provider: "deterministic-fallback" };
 
-  try {
-    const systemPrompt =
-      input.audience === "student"
-        ? "You are an Indian CBSE learning assistant. Provide hints, explanations, and revision support without completing assessed work. State uncertainty, encourage original working, and recommend teacher verification when needed. Never request or infer personal student information."
-        : "You are an Indian CBSE teaching assistant. Produce accurate, editable suggestions. Never make final grading decisions. Never request or infer personal student information. End with a teacher-verification reminder.";
-    const response = await fetch(OPENROUTER_ENDPOINT, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "X-OpenRouter-Title": "EduGrade AI",
-      },
-      body: JSON.stringify({
-        // This is deliberately a server-owned constant. Neither users nor
-        // environment variables can select or override the model.
-        model: OPENROUTER_MODEL,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: JSON.stringify(input) },
-        ],
-        // Nemotron reasons by default. Give that reasoning an explicit,
-        // bounded budget and leave ample room for the editable final answer.
-        // The model's live metadata explicitly supports reasoning.max_tokens.
-        max_tokens: 4_096,
-        reasoning: { max_tokens: 1_024, exclude: true },
-        temperature: 0.4,
-      }),
-      signal: AbortSignal.timeout(240_000),
-    });
+  const systemPrompt =
+    input.audience === "student"
+      ? `You are an Indian CBSE ${input.subject} learning assistant for Class ${input.grade}. Provide age-appropriate hints, explanations, and revision support without completing assessed work. Check calculations and curriculum claims carefully, state uncertainty, encourage original working, and recommend teacher verification when needed. Never request or infer personal student information.`
+      : `You are an Indian CBSE ${input.subject} teaching assistant for Class ${input.grade}. Produce accurate, age-appropriate, editable suggestions. Check calculations and curriculum claims carefully. Never make final grading decisions. Never request or infer personal student information. End with a teacher-verification reminder.`;
 
-    if (!response.ok)
-      throw new Error(`OpenRouter request failed (${response.status})`);
-
-    const data: unknown = await response.json();
-    const content = readContent(data);
-    if (!content) throw new Error("OpenRouter returned no usable content");
-
-    return {
-      content,
-      provider: OPENROUTER_PROVIDER,
-    };
-  } catch (error) {
-    console.error(
-      "[EduGrade AI] OpenRouter generation failed; using safe fallback:",
-      error instanceof Error ? error.message : "Unknown provider error",
-    );
-    return { content: fallback(input), provider: "deterministic-fallback" };
+  for (const model of getAIModelCandidates(input)) {
+    try {
+      const content = await requestOpenRouter(apiKey, model, systemPrompt, input);
+      return {
+        content,
+        provider: `openrouter:${model.id}`,
+      };
+    } catch (error) {
+      console.error(
+        `[EduGrade AI] OpenRouter model ${model.id} failed:`,
+        error instanceof Error ? error.message : "Unknown provider error",
+      );
+      if (error instanceof OpenRouterError && error.stopFailover) break;
+    }
   }
+
+  console.error(
+    "[EduGrade AI] All permitted OpenRouter models failed; using safe fallback.",
+  );
+  return { content: fallback(input), provider: "deterministic-fallback" };
+}
+
+class OpenRouterError extends Error {
+  constructor(
+    message: string,
+    readonly stopFailover = false,
+  ) {
+    super(message);
+    this.name = "OpenRouterError";
+  }
+}
+
+async function requestOpenRouter(
+  apiKey: string,
+  model: AIModelConfig,
+  systemPrompt: string,
+  input: GenerateInput,
+): Promise<string> {
+  const response = await fetch(OPENROUTER_ENDPOINT, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "X-OpenRouter-Title": "EduGrade AI",
+    },
+    body: JSON.stringify({
+      // The route is selected from a server-owned allowlist. Browser input
+      // and environment variables can never provide an arbitrary model ID.
+      model: model.id,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: JSON.stringify(input) },
+      ],
+      max_tokens: model.maxTokens,
+      ...(model.reasoning ? { reasoning: model.reasoning } : {}),
+      temperature: model.temperature,
+    }),
+    signal: AbortSignal.timeout(240_000),
+  });
+
+  if (!response.ok) {
+    const stopFailover = [401, 402, 429].includes(response.status);
+    throw new OpenRouterError(
+      `OpenRouter request failed (${response.status})`,
+      stopFailover,
+    );
+  }
+
+  const data: unknown = await response.json();
+  const content = readContent(data);
+  if (!content)
+    throw new OpenRouterError("OpenRouter returned no usable content");
+  return content;
 }
 
 function readContent(data: unknown): string | null {

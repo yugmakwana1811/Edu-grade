@@ -450,6 +450,7 @@ export async function generateContentAction(form: FormData) {
   const parsed = aiSchema.safeParse({
     type: text(form, "type"),
     topic: text(form, "topic"),
+    subject: text(form, "subject"),
     grade: text(form, "grade") || "12",
     details: text(form, "details"),
   });
@@ -473,6 +474,7 @@ export async function generateContentAction(form: FormData) {
       type: parsed.data.type as AIContentType,
       prompt: {
         topic: parsed.data.topic,
+        subject: parsed.data.subject,
         grade: parsed.data.grade,
         details: parsed.data.details,
       },
@@ -760,6 +762,7 @@ export async function generateFeedbackAction(form: FormData) {
   const generated = await generateAI({
     type: "FEEDBACK",
     topic: submission.assignment.topic ?? submission.assignment.title,
+    subject: submission.assignment.class.subject,
     grade: submission.assignment.class.grade,
     audience: "teacher",
     details:

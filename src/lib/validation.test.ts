@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   assignmentSchema,
+  aiSchema,
   attendanceDateSchema,
   attendanceStatusSchema,
+  classSchema,
   emailChangeSchema,
   generatedContentSchema,
   joinClassSchema,
@@ -75,8 +77,40 @@ describe("EduGrade validation", () => {
         password: "StrongPass!42",
         confirmPassword: "StrongPass!42",
         role: "STUDENT",
+        grade: "8",
       }).success,
     ).toBe(true);
+  });
+  it("supports only CBSE Classes 6 through 12", () => {
+    expect(
+      classSchema.safeParse({
+        name: "Class 6 Science",
+        subject: "Science",
+        grade: "6",
+      }).success,
+    ).toBe(true);
+    expect(
+      classSchema.safeParse({
+        name: "Class 12 Accountancy",
+        subject: "Accountancy",
+        grade: "12",
+      }).success,
+    ).toBe(true);
+    expect(
+      classSchema.safeParse({
+        name: "Class 5 Science",
+        subject: "Science",
+        grade: "5",
+      }).success,
+    ).toBe(false);
+    expect(
+      aiSchema.safeParse({
+        type: "EXPLANATION",
+        topic: "Fractions in daily life",
+        subject: "Mathematics",
+        grade: "13",
+      }).success,
+    ).toBe(false);
   });
   it("normalizes matching email changes", () => {
     const parsed = emailChangeSchema.parse({

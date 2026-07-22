@@ -58,7 +58,9 @@ export default function Home() {
         }}
       >
         <div style={{ maxWidth: 940 }}>
-          <div className="eyebrow">The full-cycle teacher assistant</div>
+          <div className="eyebrow">
+            The full-cycle teacher assistant · Classes 6–12
+          </div>
           <h1
             className="display"
             style={{
@@ -81,7 +83,7 @@ export default function Home() {
           >
             EduGrade AI brings planning, classroom work, handwritten
             submissions, teacher-reviewed feedback, communication, and learning
-            insights into one calm workspace.
+            insights for CBSE Classes 6–12 into one calm workspace.
           </p>
           <div
             style={{
@@ -238,8 +240,8 @@ export default function Home() {
             lineHeight: 1.7,
           }}
         >
-          Create a protected teacher or student workspace, or use the optional
-          seeded Class 12 Accountancy preview.
+          Create a protected Class 6–12 teacher or student workspace, or use
+          the optional seeded Class 12 Accountancy preview.
         </p>
         <Link className="btn btn-primary" href="/login">
           Enter EduGrade AI <ArrowRight size={17} />

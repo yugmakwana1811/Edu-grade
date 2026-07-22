@@ -7,6 +7,12 @@ import {
 } from "@/app/actions";
 import { Alert, PageHeader, SafetyNote } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
+import {
+  GradeSelect,
+  SubjectInput,
+} from "@/components/education-selects";
+import { normalizeCbseGrade } from "@/lib/education";
+import { aiProviderLabel } from "@/lib/ai-routing";
 export default async function AIHelp({
   searchParams,
 }: {
@@ -64,6 +70,10 @@ export default async function AIHelp({
               </select>
             </label>
             <label>
+              <span className="label">Subject</span>
+              <SubjectInput defaultValue="General" />
+            </label>
+            <label>
               <span className="label">Topic or question</span>
               <input
                 className="field"
@@ -74,11 +84,12 @@ export default async function AIHelp({
                 placeholder="Why does the sacrificing ratio matter?"
               />
             </label>
-            <input
-              type="hidden"
-              name="grade"
-              value={user.studentProfile?.grade ?? "12"}
-            />
+            <label>
+              <span className="label">Class / grade</span>
+              <GradeSelect
+                defaultValue={normalizeCbseGrade(user.studentProfile?.grade)}
+              />
+            </label>
             <label>
               <span className="label">
                 What have you tried? <span className="hint">(optional)</span>
@@ -93,6 +104,10 @@ export default async function AIHelp({
             <SubmitButton pendingText="Thinking with you…">
               <Sparkles size={16} /> Get learning support
             </SubmitButton>
+            <p className="hint" style={{ margin: 0 }}>
+              EduGrade selects a subject-matched model and shows which model
+              created the suggestion.
+            </p>
           </form>
           <div
             style={{
@@ -118,6 +133,9 @@ export default async function AIHelp({
             <>
               <span className="badge badge-coral">
                 <Bot size={13} /> AI-assisted suggestion
+              </span>
+              <span className="hint" style={{ marginLeft: ".55rem" }}>
+                {aiProviderLabel(output.provider)}
               </span>
               {output.provider === "deterministic-fallback" && (
                 <p className="hint" role="status">

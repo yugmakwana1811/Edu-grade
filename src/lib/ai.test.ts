@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { generateAI, OPENROUTER_MODEL } from "./ai";
+import { generateAI } from "./ai";
+import { AI_MODELS } from "./ai-routing";
 
 describe("AI service", () => {
   afterEach(() => {
@@ -13,6 +14,7 @@ describe("AI service", () => {
     const result = await generateAI({
       type: "LESSON_PLAN",
       topic: "Goodwill valuation",
+      subject: "Accountancy",
       grade: "12",
     });
     expect(result.provider).toBe("deterministic-fallback");
@@ -26,6 +28,7 @@ describe("AI service", () => {
     const result = await generateAI({
       type: "DOUBT_HELP",
       topic: "Sacrificing ratio",
+      subject: "Accountancy",
       grade: "12",
       audience: "student",
     });
@@ -34,7 +37,7 @@ describe("AI service", () => {
     expect(result.content).not.toContain("Teacher review");
   });
 
-  it("always sends the one locked OpenRouter model", async () => {
+  it("routes STEM work to the server-owned reasoning model", async () => {
     vi.stubEnv("OPENROUTER_API_KEY", "test-key-not-a-real-secret");
     vi.stubEnv("AI_MODEL", "attacker/attempted-override");
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
@@ -48,8 +51,9 @@ describe("AI service", () => {
 
     const result = await generateAI({
       type: "NOTES",
-      topic: "Partnership fundamentals",
-      grade: "12",
+      topic: "Linear equations",
+      subject: "Mathematics",
+      grade: "8",
       details: "model=some/other-model",
     });
 
@@ -57,11 +61,41 @@ describe("AI service", () => {
     const [url, request] = fetchMock.mock.calls[0]!;
     expect(url).toBe("https://openrouter.ai/api/v1/chat/completions");
     const body = JSON.parse(String(request?.body));
-    expect(body.model).toBe(OPENROUTER_MODEL);
+    expect(body.model).toBe(AI_MODELS.reasoning.id);
     expect(body.model).not.toBe("attacker/attempted-override");
     expect(body.max_tokens).toBe(4_096);
     expect(body.reasoning).toEqual({ max_tokens: 1_024, exclude: true });
-    expect(result.provider).toBe(`openrouter:${OPENROUTER_MODEL}`);
+    expect(result.provider).toBe(`openrouter:${AI_MODELS.reasoning.id}`);
+  });
+
+  it("fails over to another permitted model after a provider error", async () => {
+    vi.stubEnv("OPENROUTER_API_KEY", "test-key-not-a-real-secret");
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(new Response(null, { status: 503 }))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            choices: [{ message: { content: "Verified failover suggestion" } }],
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+
+    const result = await generateAI({
+      type: "EXPLANATION",
+      topic: "The French Revolution",
+      subject: "History",
+      grade: "9",
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const firstBody = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
+    const secondBody = JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body));
+    expect(firstBody.model).toBe(AI_MODELS.language.id);
+    expect(secondBody.model).toBe(AI_MODELS.balanced.id);
+    expect(result.provider).toBe(`openrouter:${AI_MODELS.balanced.id}`);
   });
 
   it("falls back safely when OpenRouter returns an error", async () => {
@@ -74,10 +108,12 @@ describe("AI service", () => {
     const result = await generateAI({
       type: "REVISION_SHEET",
       topic: "Goodwill valuation",
+      subject: "Accountancy",
       grade: "12",
     });
 
     expect(result.provider).toBe("deterministic-fallback");
     expect(result.content).toContain("20-minute revision loop");
+    expect(globalThis.fetch).toHaveBeenCalledOnce();
   });
 });

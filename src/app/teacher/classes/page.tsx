@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { Alert, EmptyState, PageHeader } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
 import { createClassAction } from "@/app/actions";
+import { GradeSelect } from "@/components/education-selects";
 
 export default async function TeacherClasses({
   searchParams,
@@ -137,7 +138,7 @@ export default async function TeacherClasses({
             </label>
             <label>
               <span className="label">Grade</span>
-              <input className="field" name="grade" placeholder="11" required />
+              <GradeSelect defaultValue="11" />
             </label>
             <label>
               <span className="label">

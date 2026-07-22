@@ -1,4 +1,18 @@
 import { z } from "zod";
+import { isCbseGrade } from "@/lib/education";
+
+const requiredGradeSchema = z
+  .string()
+  .trim()
+  .refine(isCbseGrade, "Choose a grade from Class 6 to 12");
+const optionalGradeSchema = z
+  .string()
+  .trim()
+  .refine(
+    (value) => !value || isCbseGrade(value),
+    "Choose a grade from Class 6 to 12",
+  )
+  .transform((value) => value || undefined);
 
 const normalizedEmail = z
   .string()
@@ -27,18 +41,26 @@ export const registerSchema = z
     role: z.enum(["TEACHER", "STUDENT"]),
     school: z.string().trim().max(120).optional(),
     subject: z.string().trim().max(80).optional(),
-    grade: z.string().trim().max(30).optional(),
+    grade: optionalGradeSchema,
     rollNumber: z.string().trim().max(30).optional(),
   })
   .refine((value) => value.password === value.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
+  })
+  .superRefine((value, ctx) => {
+    if (value.role === "STUDENT" && !value.grade)
+      ctx.addIssue({
+        code: "custom",
+        message: "Choose your grade from Class 6 to 12",
+        path: ["grade"],
+      });
   });
 export const accountSchema = z.object({
   name: z.string().trim().min(2).max(80),
   school: z.string().trim().max(120).optional(),
   subject: z.string().trim().max(80).optional(),
-  grade: z.string().trim().max(30).optional(),
+  grade: optionalGradeSchema,
   rollNumber: z.string().trim().max(30).optional(),
 });
 export const emailChangeSchema = z
@@ -71,7 +93,7 @@ export const passwordChangeSchema = z
 export const classSchema = z.object({
   name: z.string().min(3).max(80),
   subject: z.string().min(2).max(60),
-  grade: z.string().min(1).max(20),
+  grade: requiredGradeSchema,
   description: z.string().max(300).optional(),
 });
 export const joinClassSchema = z.object({
@@ -157,7 +179,8 @@ export const aiSchema = z.object({
     "REVISION_HELP",
   ]),
   topic: z.string().min(3).max(160),
-  grade: z.string().min(1).max(30).default("12"),
+  subject: z.string().trim().min(2).max(80),
+  grade: requiredGradeSchema,
   details: z.string().max(1000).optional(),
 });
 export const announcementSchema = z.object({

@@ -21,6 +21,7 @@ import {
   updateClassAction,
 } from "@/app/actions";
 import { SubmitButton } from "@/components/submit-button";
+import { GradeSelect } from "@/components/education-selects";
 export default async function ClassDetail({
   params,
   searchParams,
@@ -262,13 +263,7 @@ export default async function ClassDetail({
                 </label>
                 <label>
                   <span className="label">Grade</span>
-                  <input
-                    className="field"
-                    name="grade"
-                    defaultValue={c.grade}
-                    maxLength={20}
-                    required
-                  />
+                  <GradeSelect defaultValue={c.grade} />
                 </label>
               </div>
               <label>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { GraduationCap, UserRound } from "lucide-react";
 import { registerAction } from "@/app/auth-actions";
 import { SubmitButton } from "@/components/submit-button";
+import { GradeSelect } from "@/components/education-selects";
 
 export function RegisterForm() {
   const [role, setRole] = useState<"TEACHER" | "STUDENT">("TEACHER");
@@ -109,15 +110,8 @@ export function RegisterForm() {
           }}
         >
           <label>
-            <span className="label">
-              Grade <span className="hint">(optional)</span>
-            </span>
-            <input
-              className="field"
-              name="grade"
-              maxLength={30}
-              placeholder="12"
-            />
+            <span className="label">Grade</span>
+            <GradeSelect />
           </label>
           <label>
             <span className="label">

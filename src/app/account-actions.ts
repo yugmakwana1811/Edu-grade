@@ -35,6 +35,8 @@ export async function updateAccountAction(form: FormData) {
   });
   if (!parsed.success)
     fail(parsed.error.issues[0]?.message ?? "Check your profile details.");
+  if (user.role === "STUDENT" && !parsed.data.grade)
+    fail("Choose your grade from Class 6 to 12.");
   await db.$transaction(async (tx) => {
     await tx.user.update({
       where: { id: user.id },

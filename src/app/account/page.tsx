@@ -2,6 +2,7 @@ import { KeyRound, MailCheck, UserRound } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { Alert, PageHeader } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
+import { GradeSelect } from "@/components/education-selects";
 import {
   changeEmailAction,
   changePasswordAction,
@@ -102,11 +103,8 @@ export default async function AccountPage({
               >
                 <label>
                   <span className="label">Grade</span>
-                  <input
-                    className="field"
-                    name="grade"
+                  <GradeSelect
                     defaultValue={user.studentProfile?.grade ?? ""}
-                    maxLength={30}
                   />
                 </label>
                 <label>

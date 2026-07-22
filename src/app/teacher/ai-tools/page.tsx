@@ -18,6 +18,11 @@ import {
 } from "@/app/actions";
 import { Alert, PageHeader, SafetyNote } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
+import {
+  GradeSelect,
+  SubjectInput,
+} from "@/components/education-selects";
+import { aiProviderLabel } from "@/lib/ai-routing";
 
 const tools = [
   {
@@ -133,13 +138,14 @@ export default async function AITools({
               />
             </label>
             <label>
-              <span className="label">Class / grade</span>
-              <input
-                className="field"
-                name="grade"
-                required
-                defaultValue="12"
+              <span className="label">Subject</span>
+              <SubjectInput
+                defaultValue={user.teacherProfile?.subject ?? "General"}
               />
+            </label>
+            <label>
+              <span className="label">Class / grade</span>
+              <GradeSelect defaultValue="12" />
             </label>
             <label>
               <span className="label">
@@ -155,6 +161,10 @@ export default async function AITools({
             <SubmitButton pendingText="Creating suggestion…">
               <Sparkles size={16} /> Generate editable draft
             </SubmitButton>
+            <p className="hint" style={{ margin: 0 }}>
+              EduGrade securely selects a subject-matched model. The model used
+              is shown with every draft.
+            </p>
           </form>
           <div
             style={{
@@ -211,9 +221,7 @@ export default async function AITools({
                   </h2>
                 </div>
                 <span className="hint">
-                  {output.provider === "deterministic-fallback"
-                    ? "Safe fallback mode"
-                    : "OpenRouter · Nemotron 3 Ultra"}
+                  {aiProviderLabel(output.provider)}
                 </span>
               </div>
               {output.provider === "deterministic-fallback" && (
