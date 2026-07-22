@@ -149,7 +149,7 @@ export default async function AITools({
                 className="field"
                 name="details"
                 maxLength={1000}
-                placeholder="Learning needs, duration, prior knowledge, or chapter focus"
+                placeholder="Learning needs, duration, or chapter focus—without names or personal data"
               />
             </label>
             <SubmitButton pendingText="Creating suggestion…">
@@ -213,9 +213,15 @@ export default async function AITools({
                 <span className="hint">
                   {output.provider === "deterministic-fallback"
                     ? "Safe fallback mode"
-                    : output.provider}
+                    : "OpenRouter · Nemotron 3 Ultra"}
                 </span>
               </div>
+              {output.provider === "deterministic-fallback" && (
+                <p className="hint" role="status">
+                  Live AI was unavailable, so EduGrade created an editable safe
+                  fallback.
+                </p>
+              )}
               <form action={saveGeneratedContentAction}>
                 <input type="hidden" name="id" value={output.id} />
                 <label>

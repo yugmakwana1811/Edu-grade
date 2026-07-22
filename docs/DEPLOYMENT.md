@@ -10,10 +10,9 @@ Copy `.env.example` to `.env.local` for local development. Never commit `.env.lo
 - `AUTH_SECRET`: at least 32 random bytes; signs session-token hashes and authentication throttle keys.
 - `BLOB_READ_WRITE_TOKEN`: private Vercel Blob token used for teaching resources and answer pages.
 - `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`: stable 32-byte base64 key shared by all production instances.
-- `AI_GATEWAY_API_KEY`: optional Vercel AI Gateway credential. The app uses deterministic, teacher-safe fallback generation when absent.
-- `AI_MODEL`: optional Gateway model name, defaulting to `openai/gpt-5-mini`.
+- `OPENROUTER_API_KEY`: optional server-only OpenRouter credential. The app uses deterministic, teacher-safe fallback generation when absent. The backend always requests `nvidia/nemotron-3-ultra-550b-a55b:free`; there is no model-selection environment variable or client input.
 
-Generate secrets locally with `openssl rand -base64 32`. Add values through `vercel env add` or the Vercel project settings; do not pass them on a command line that is recorded in shell history.
+Generate application secrets locally with `openssl rand -base64 32`. Add values through `vercel env add` or the Vercel project settings; do not pass secret values on a command line that is recorded in shell history. Never commit an OpenRouter key or expose it with a `NEXT_PUBLIC_` prefix.
 
 ## Fresh environment
 
@@ -37,7 +36,7 @@ Before production promotion:
 
 - Run `npm run check` and `npm audit --omit=dev`.
 - Run `npx prisma migrate status` against the target database.
-- Confirm `/api/health` reports `database: connected` and `storage: configured`.
+- Confirm `/api/health` reports `database: connected`, `storage: configured`, and either `ai: configured` or the documented `ai: fallback` mode.
 - Exercise teacher registration, student registration, class enrollment, assignment upload/review, result publication, and quiz authoring/attempts.
 - Inspect production error logs after the deployment.
 

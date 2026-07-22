@@ -174,7 +174,9 @@ export function SafetyNote({ student = false }: { student?: boolean }) {
       output is a suggestion, may contain errors, and must be reviewed.{" "}
       {student
         ? "Use it to understand—not to replace your own work—and ask your teacher when unsure."
-        : "Final teaching decisions, evaluation, marks, and published feedback remain with the teacher."}
+        : "Final teaching decisions, evaluation, marks, and published feedback remain with the teacher."}{" "}
+      Do not enter names, contact details, answer-sheet images, or other personal
+      or confidential information into AI prompts.
     </div>
   );
 }

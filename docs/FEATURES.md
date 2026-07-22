@@ -16,7 +16,8 @@
 ## Deliberate limitations
 
 - AI output is assistive only. It does not autonomously grade handwriting or make final academic decisions; teachers review, edit, set marks, and publish.
-- Without `AI_GATEWAY_API_KEY`, the server uses deterministic curriculum-safe templates rather than a generative model.
+- Live generation uses OpenRouter through a server-only integration locked to `nvidia/nemotron-3-ultra-550b-a55b:free`. Users and environment variables cannot select another model. Without `OPENROUTER_API_KEY`, or when the provider is unavailable, the server visibly uses deterministic curriculum-safe templates.
+- The configured free model endpoint must not receive personal or confidential information. AI prompts warn users accordingly, and automated feedback prompts exclude student names and answer content.
 - Quiz duration is a suggested pacing target, not a server-enforced countdown. This avoids claiming timed-exam enforcement that is not implemented.
 - Account email verification and automated email-based password recovery are not enabled because no transactional email provider is configured. Signed-in users can change passwords; locked-out users require verified support assistance.
 - Notifications are currently in-app announcements and dashboard states; email, SMS, and push delivery are not configured.

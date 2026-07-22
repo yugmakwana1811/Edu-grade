@@ -87,7 +87,7 @@ export default async function AIHelp({
                 className="field"
                 name="details"
                 maxLength={1000}
-                placeholder="Share your current thinking so the hint can meet you there."
+                placeholder="Share your current thinking without names or personal details."
               />
             </label>
             <SubmitButton pendingText="Thinking with you…">
@@ -119,6 +119,12 @@ export default async function AIHelp({
               <span className="badge badge-coral">
                 <Bot size={13} /> AI-assisted suggestion
               </span>
+              {output.provider === "deterministic-fallback" && (
+                <p className="hint" role="status">
+                  Live AI was unavailable, so EduGrade created an editable safe
+                  fallback.
+                </p>
+              )}
               <h2
                 className="display"
                 style={{ fontSize: "1.9rem", margin: ".7rem 0" }}

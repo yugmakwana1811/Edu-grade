@@ -11,6 +11,13 @@ export type GenerateInput = {
 };
 export type GenerateResult = { content: string; provider: string };
 
+export const OPENROUTER_MODEL =
+  "nvidia/nemotron-3-ultra-550b-a55b:free" as const;
+
+const OPENROUTER_ENDPOINT =
+  "https://openrouter.ai/api/v1/chat/completions" as const;
+const OPENROUTER_PROVIDER = `openrouter:${OPENROUTER_MODEL}` as const;
+
 const label: Record<AIContentType, string> = {
   LESSON_PLAN: "Lesson plan",
   EXPLANATION: "Topic explanation",
@@ -55,39 +62,65 @@ function fallback(i: GenerateInput): string {
 export async function generateAI(
   input: GenerateInput,
 ): Promise<GenerateResult> {
-  const apiKey = process.env.AI_GATEWAY_API_KEY;
+  const apiKey = process.env.OPENROUTER_API_KEY?.trim();
   if (!apiKey)
     return { content: fallback(input), provider: "deterministic-fallback" };
+
   try {
     const systemPrompt =
       input.audience === "student"
-        ? "You are an Indian CBSE learning assistant. Provide hints, explanations, and revision support without completing assessed work. State uncertainty, encourage original working, and recommend teacher verification when needed."
-        : "You are an Indian CBSE teaching assistant. Produce accurate, editable suggestions. Never make final grading decisions. End with a teacher-verification reminder.";
-    const response = await fetch(
-      "https://ai-gateway.vercel.sh/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: process.env.AI_MODEL ?? "openai/gpt-5-mini",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: JSON.stringify(input) },
-          ],
-        }),
-        signal: AbortSignal.timeout(45000),
+        ? "You are an Indian CBSE learning assistant. Provide hints, explanations, and revision support without completing assessed work. State uncertainty, encourage original working, and recommend teacher verification when needed. Never request or infer personal student information."
+        : "You are an Indian CBSE teaching assistant. Produce accurate, editable suggestions. Never make final grading decisions. Never request or infer personal student information. End with a teacher-verification reminder.";
+    const response = await fetch(OPENROUTER_ENDPOINT, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "X-OpenRouter-Title": "EduGrade AI",
       },
-    );
-    if (!response.ok) throw new Error("AI gateway unavailable");
-    const data = await response.json();
+      body: JSON.stringify({
+        // This is deliberately a server-owned constant. Neither users nor
+        // environment variables can select or override the model.
+        model: OPENROUTER_MODEL,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: JSON.stringify(input) },
+        ],
+        max_tokens: 900,
+        reasoning: { effort: "low", exclude: true },
+        temperature: 0.4,
+      }),
+      signal: AbortSignal.timeout(240_000),
+    });
+
+    if (!response.ok)
+      throw new Error(`OpenRouter request failed (${response.status})`);
+
+    const data: unknown = await response.json();
+    const content = readContent(data);
+    if (!content) throw new Error("OpenRouter returned no usable content");
+
     return {
-      content: data.choices?.[0]?.message?.content || fallback(input),
-      provider: process.env.AI_MODEL ?? "ai-gateway",
+      content,
+      provider: OPENROUTER_PROVIDER,
     };
-  } catch {
+  } catch (error) {
+    console.error(
+      "[EduGrade AI] OpenRouter generation failed; using safe fallback:",
+      error instanceof Error ? error.message : "Unknown provider error",
+    );
     return { content: fallback(input), provider: "deterministic-fallback" };
   }
+}
+
+function readContent(data: unknown): string | null {
+  if (!data || typeof data !== "object") return null;
+  const choices = (data as { choices?: unknown }).choices;
+  if (!Array.isArray(choices)) return null;
+  const first = choices[0];
+  if (!first || typeof first !== "object") return null;
+  const message = (first as { message?: unknown }).message;
+  if (!message || typeof message !== "object") return null;
+  const content = (message as { content?: unknown }).content;
+  return typeof content === "string" && content.trim() ? content.trim() : null;
 }

@@ -754,7 +754,6 @@ export async function generateFeedbackAction(form: FormData) {
     },
     include: {
       assignment: { include: { class: true } },
-      student: { include: { user: true } },
     },
   });
   if (!submission) fail("/teacher/review", "Submission not found.");
@@ -763,7 +762,8 @@ export async function generateFeedbackAction(form: FormData) {
     topic: submission.assignment.topic ?? submission.assignment.title,
     grade: submission.assignment.class.grade,
     audience: "teacher",
-    details: `Learner: ${submission.student.user.name}. Use supportive, specific language. Do not decide marks.`,
+    details:
+      "Use supportive, specific language. Do not decide marks or infer personal learner information.",
   });
   await db.feedback.create({
     data: { submissionId, content: generated.content, isAiSuggested: true },
