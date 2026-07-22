@@ -8,7 +8,7 @@ npm run check
 npm audit --omit=dev
 ```
 
-The gate includes TypeScript checking, ESLint, Vitest unit tests, Prisma Client generation, and a production Next.js build.
+The gate includes Prisma schema validation, TypeScript checking, ESLint, Vitest unit tests, Prisma Client generation, and a production Next.js build. Prisma CLI commands load the same root `.env*` hierarchy as Next.js, including the gitignored `.env.local` used for local credentials.
 
 For database-backed testing, use an isolated PostgreSQL database or Neon branch. Apply `npm run db:deploy`, optionally run `npm run db:seed`, start with `npm run dev`, and test both roles. Never point destructive or experimental tests at the production branch.
 

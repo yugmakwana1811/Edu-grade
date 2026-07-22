@@ -19,6 +19,9 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - run: npm run db:validate
+        env:
+          DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/edugrade
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
