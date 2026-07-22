@@ -130,7 +130,10 @@ async function requestOpenRouter(
   });
 
   if (!response.ok) {
-    const stopFailover = [401, 402, 429].includes(response.status);
+    // Authentication and billing failures affect every model. A 429 can be
+    // provider/model-specific on OpenRouter, so the next permitted model may
+    // still be healthy and should be tried.
+    const stopFailover = [401, 402, 403].includes(response.status);
     throw new OpenRouterError(
       `OpenRouter request failed (${response.status})`,
       stopFailover,

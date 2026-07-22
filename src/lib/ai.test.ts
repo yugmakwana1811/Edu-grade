@@ -98,11 +98,37 @@ describe("AI service", () => {
     expect(result.provider).toBe(`openrouter:${AI_MODELS.balanced.id}`);
   });
 
+  it("uses a permitted failover when the primary model is rate limited", async () => {
+    vi.stubEnv("OPENROUTER_API_KEY", "test-key-not-a-real-secret");
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(new Response(null, { status: 429 }))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            choices: [{ message: { content: "Rate-limit failover answer" } }],
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+
+    const result = await generateAI({
+      type: "EXPLANATION",
+      topic: "Personification",
+      subject: "English",
+      grade: "8",
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(result.provider).toBe(`openrouter:${AI_MODELS.balanced.id}`);
+  });
+
   it("falls back safely when OpenRouter returns an error", async () => {
     vi.stubEnv("OPENROUTER_API_KEY", "test-key-not-a-real-secret");
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(null, { status: 429 }),
+      new Response(null, { status: 401 }),
     );
 
     const result = await generateAI({
