@@ -3,6 +3,7 @@ import {
   assignmentSchema,
   attendanceDateSchema,
   attendanceStatusSchema,
+  emailChangeSchema,
   generatedContentSchema,
   joinClassSchema,
   quizSchema,
@@ -76,6 +77,23 @@ describe("EduGrade validation", () => {
         role: "STUDENT",
       }).success,
     ).toBe(true);
+  });
+  it("normalizes matching email changes", () => {
+    const parsed = emailChangeSchema.parse({
+      newEmail: " New.Address@Example.com ",
+      confirmEmail: "new.address@example.com",
+      currentPassword: "CurrentPass!42",
+    });
+    expect(parsed.newEmail).toBe("new.address@example.com");
+  });
+  it("rejects mismatched email changes", () => {
+    expect(
+      emailChangeSchema.safeParse({
+        newEmail: "first@example.com",
+        confirmEmail: "second@example.com",
+        currentPassword: "CurrentPass!42",
+      }).success,
+    ).toBe(false);
   });
   it("rejects quiz questions whose correct answer is not an option", () => {
     expect(

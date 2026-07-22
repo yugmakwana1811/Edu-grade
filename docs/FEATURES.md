@@ -19,6 +19,6 @@
 - Live generation uses OpenRouter through a server-only integration locked to `nvidia/nemotron-3-ultra-550b-a55b:free`. Users and environment variables cannot select another model. Without `OPENROUTER_API_KEY`, or when the provider is unavailable, the server visibly uses deterministic curriculum-safe templates.
 - The configured free model endpoint must not receive personal or confidential information. AI prompts warn users accordingly, and automated feedback prompts exclude student names and answer content.
 - Quiz duration is a suggested pacing target, not a server-enforced countdown. This avoids claiming timed-exam enforcement that is not implemented.
-- Account email verification and automated email-based password recovery are not enabled because no transactional email provider is configured. Signed-in users can change passwords; locked-out users require verified support assistance.
+- Signed-in users can change their sign-in email after current-password verification; the address is entered twice, must be unique, is audit-logged, and other sessions are revoked. Mailbox ownership verification and automated email-based password recovery remain unavailable because no transactional email provider is configured; locked-out users still require verified support assistance.
 - Notifications are currently in-app announcements and dashboard states; email, SMS, and push delivery are not configured.
 - The product is optimized for CBSE classrooms in the `Asia/Kolkata` timezone and provides teacher-support analytics, not a school-wide SIS, fee, or parent portal.

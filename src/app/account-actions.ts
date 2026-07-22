@@ -1,10 +1,21 @@
 "use server";
 
 import bcrypt from "bcryptjs";
+import { Prisma } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { createSession, requireUser } from "@/lib/auth";
-import { accountSchema, passwordChangeSchema } from "@/lib/validation";
+import {
+  assertAuthAllowed,
+  authThrottleKey,
+  clearAuthFailures,
+  recordAuthFailure,
+} from "@/lib/auth-throttle";
+import {
+  accountSchema,
+  emailChangeSchema,
+  passwordChangeSchema,
+} from "@/lib/validation";
 
 function value(form: FormData, key: string) {
   return String(form.get(key) ?? "");
@@ -48,6 +59,76 @@ export async function updateAccountAction(form: FormData) {
     });
   });
   redirect("/account?success=Profile updated");
+}
+
+export async function changeEmailAction(form: FormData) {
+  const user = await requireUser();
+  const parsed = emailChangeSchema.safeParse({
+    newEmail: value(form, "newEmail"),
+    confirmEmail: value(form, "confirmEmail"),
+    currentPassword: value(form, "currentPassword"),
+  });
+  if (!parsed.success)
+    fail(parsed.error.issues[0]?.message ?? "Check the email fields.");
+  if (parsed.data.newEmail === user.email)
+    fail("Enter an email address different from your current one.");
+
+  const throttleKey = await authThrottleKey("email-change", user.id);
+  try {
+    await assertAuthAllowed(throttleKey);
+  } catch (error) {
+    fail(
+      error instanceof Error
+        ? error.message
+        : "Email change is temporarily unavailable.",
+    );
+  }
+
+  const stored = await db.user.findUnique({
+    where: { id: user.id },
+    select: { passwordHash: true },
+  });
+  if (
+    !stored ||
+    !(await bcrypt.compare(parsed.data.currentPassword, stored.passwordHash))
+  ) {
+    await recordAuthFailure(throttleKey);
+    fail("Current password is incorrect.");
+  }
+  await clearAuthFailures(throttleKey);
+
+  try {
+    await db.$transaction([
+      db.user.update({
+        where: { id: user.id },
+        data: { email: parsed.data.newEmail },
+      }),
+      db.session.deleteMany({ where: { userId: user.id } }),
+      db.activityLog.create({
+        data: {
+          userId: user.id,
+          action: "Changed email address",
+          entityType: "User",
+        },
+      }),
+    ]);
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    )
+      fail("That email address is already in use.");
+    console.error(
+      "[EduGrade] Email change failed",
+      error instanceof Error ? error.message : "Unknown error",
+    );
+    fail("Email address could not be changed. Please try again.");
+  }
+
+  await createSession(user.id);
+  redirect(
+    "/account?success=Email changed and other sessions signed out",
+  );
 }
 
 export async function changePasswordAction(form: FormData) {

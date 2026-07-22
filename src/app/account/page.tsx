@@ -1,8 +1,9 @@
-import { KeyRound, UserRound } from "lucide-react";
+import { KeyRound, MailCheck, UserRound } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { Alert, PageHeader } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
 import {
+  changeEmailAction,
   changePasswordAction,
   updateAccountAction,
 } from "@/app/account-actions";
@@ -64,7 +65,8 @@ export default async function AccountPage({
               <span className="label">Email address</span>
               <input className="field" value={user.email} disabled />
               <span className="hint">
-                Email changes require support verification.
+                Use the secure email-change form. Your current password verifies
+                account control.
               </span>
             </label>
             <label>
@@ -123,68 +125,130 @@ export default async function AccountPage({
             </SubmitButton>
           </form>
         </section>
-        <section className="card card-pad">
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <KeyRound size={18} color="var(--coral)" />
-            <div className="eyebrow">Security</div>
-          </div>
-          <h2
-            className="display"
-            style={{ fontSize: "1.8rem", margin: ".3rem 0 1rem" }}
-          >
-            Change password
-          </h2>
-          <form
-            action={changePasswordAction}
-            style={{ display: "grid", gap: ".85rem" }}
-          >
-            <label>
-              <span className="label">Current password</span>
-              <input
-                className="field"
-                name="currentPassword"
-                type="password"
-                autoComplete="current-password"
-                required
-              />
-            </label>
-            <label>
-              <span className="label">New password</span>
-              <input
-                className="field"
-                name="newPassword"
-                type="password"
-                autoComplete="new-password"
-                minLength={10}
-                maxLength={128}
-                pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{10,}"
-                required
-              />
+        <div style={{ display: "grid", gap: "1rem" }}>
+          <section className="card card-pad">
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <MailCheck size={18} color="var(--teal)" />
+              <div className="eyebrow">Sign-in email</div>
+            </div>
+            <h2
+              className="display"
+              style={{ fontSize: "1.8rem", margin: ".3rem 0 1rem" }}
+            >
+              Change email address
+            </h2>
+            <form
+              action={changeEmailAction}
+              style={{ display: "grid", gap: ".85rem" }}
+            >
+              <label>
+                <span className="label">New email address</span>
+                <input
+                  className="field"
+                  name="newEmail"
+                  type="email"
+                  autoComplete="email"
+                  maxLength={254}
+                  required
+                />
+              </label>
+              <label>
+                <span className="label">Confirm new email</span>
+                <input
+                  className="field"
+                  name="confirmEmail"
+                  type="email"
+                  autoComplete="off"
+                  maxLength={254}
+                  required
+                />
+              </label>
+              <label>
+                <span className="label">Current password</span>
+                <input
+                  className="field"
+                  name="currentPassword"
+                  type="password"
+                  autoComplete="current-password"
+                  maxLength={128}
+                  required
+                />
+              </label>
               <span className="hint">
-                Use 10+ characters with uppercase, lowercase, number, and
-                symbol.
+                This verifies control of your current account. Mailbox ownership
+                is not email-verified because outbound email is not configured.
               </span>
-            </label>
-            <label>
-              <span className="label">Confirm new password</span>
-              <input
-                className="field"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                minLength={10}
-                maxLength={128}
-                required
-              />
-            </label>
-            <SubmitButton
-              pendingText="Securing account…"
-              confirmMessage="Change your password and sign out every other active session?"
+              <SubmitButton
+                pendingText="Changing email…"
+                confirmMessage="Change your sign-in email and sign out every other active session?"
+              >
+                Change email securely
+              </SubmitButton>
+            </form>
+          </section>
+          <section className="card card-pad">
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <KeyRound size={18} color="var(--coral)" />
+              <div className="eyebrow">Security</div>
+            </div>
+            <h2
+              className="display"
+              style={{ fontSize: "1.8rem", margin: ".3rem 0 1rem" }}
             >
               Change password
-            </SubmitButton>
-          </form>
-        </section>
+            </h2>
+            <form
+              action={changePasswordAction}
+              style={{ display: "grid", gap: ".85rem" }}
+            >
+              <label>
+                <span className="label">Current password</span>
+                <input
+                  className="field"
+                  name="currentPassword"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                />
+              </label>
+              <label>
+                <span className="label">New password</span>
+                <input
+                  className="field"
+                  name="newPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={10}
+                  maxLength={128}
+                  pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{10,}"
+                  required
+                />
+                <span className="hint">
+                  Use 10+ characters with uppercase, lowercase, number, and
+                  symbol.
+                </span>
+              </label>
+              <label>
+                <span className="label">Confirm new password</span>
+                <input
+                  className="field"
+                  name="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={10}
+                  maxLength={128}
+                  required
+                />
+              </label>
+              <SubmitButton
+                pendingText="Securing account…"
+                confirmMessage="Change your password and sign out every other active session?"
+              >
+                Change password
+              </SubmitButton>
+            </form>
+          </section>
+        </div>
       </div>
     </div>
   );

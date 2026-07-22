@@ -1,7 +1,13 @@
 import { z } from "zod";
 
+const normalizedEmail = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .pipe(z.email("Enter a valid email address"));
+
 export const loginSchema = z.object({
-  email: z.email().transform((v) => v.toLowerCase()),
+  email: normalizedEmail,
   password: z.string().min(8, "Password must contain at least 8 characters"),
 });
 const strongPassword = z
@@ -15,7 +21,7 @@ const strongPassword = z
 export const registerSchema = z
   .object({
     name: z.string().trim().min(2).max(80),
-    email: z.email().trim().toLowerCase(),
+    email: normalizedEmail,
     password: strongPassword,
     confirmPassword: z.string(),
     role: z.enum(["TEACHER", "STUDENT"]),
@@ -35,6 +41,19 @@ export const accountSchema = z.object({
   grade: z.string().trim().max(30).optional(),
   rollNumber: z.string().trim().max(30).optional(),
 });
+export const emailChangeSchema = z
+  .object({
+    newEmail: normalizedEmail,
+    confirmEmail: normalizedEmail,
+    currentPassword: z
+      .string()
+      .min(1, "Enter your current password")
+      .max(128, "Password is too long"),
+  })
+  .refine((value) => value.newEmail === value.confirmEmail, {
+    message: "Email addresses do not match",
+    path: ["confirmEmail"],
+  });
 export const passwordChangeSchema = z
   .object({
     currentPassword: z.string().min(1, "Enter your current password"),

@@ -24,7 +24,7 @@ async function clientAddress() {
 }
 
 export async function authThrottleKey(
-  scope: "login" | "register",
+  scope: "login" | "register" | "email-change",
   identifier: string,
 ) {
   const address = await clientAddress();

@@ -21,5 +21,5 @@ Core manual regression paths:
 5. Review pages as the teacher, edit AI feedback, save marks, and publish.
 6. Confirm unpublished results remain hidden and published results are visible to the enrolled learner only.
 7. Create a quiz with unique options, publish it, attempt it as the learner, and verify scoring/explanations.
-8. Update profile details, change a password, and verify other sessions are invalidated.
+8. Update profile details, change a sign-in email and password with current-password verification, and verify other sessions are invalidated.
 9. Confirm private file routes return `401` without a session and `404` for unauthorized classroom users.
