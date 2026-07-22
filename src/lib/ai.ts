@@ -86,13 +86,11 @@ export async function generateAI(
           { role: "system", content: systemPrompt },
           { role: "user", content: JSON.stringify(input) },
         ],
-        // Nemotron currently supports medium/high reasoning and defaults to
-        // reasoning even though it is optional. Disable it for these concise,
-        // user-facing generations so the completion budget is reserved for
-        // the editable final answer instead of being exhausted by hidden
-        // reasoning tokens.
-        max_tokens: 1_600,
-        reasoning: { effort: "none", exclude: true },
+        // Nemotron reasons by default. Give that reasoning an explicit,
+        // bounded budget and leave ample room for the editable final answer.
+        // The model's live metadata explicitly supports reasoning.max_tokens.
+        max_tokens: 4_096,
+        reasoning: { max_tokens: 1_024, exclude: true },
         temperature: 0.4,
       }),
       signal: AbortSignal.timeout(240_000),

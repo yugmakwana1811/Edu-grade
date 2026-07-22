@@ -59,8 +59,8 @@ describe("AI service", () => {
     const body = JSON.parse(String(request?.body));
     expect(body.model).toBe(OPENROUTER_MODEL);
     expect(body.model).not.toBe("attacker/attempted-override");
-    expect(body.max_tokens).toBe(1_600);
-    expect(body.reasoning).toEqual({ effort: "none", exclude: true });
+    expect(body.max_tokens).toBe(4_096);
+    expect(body.reasoning).toEqual({ max_tokens: 1_024, exclude: true });
     expect(result.provider).toBe(`openrouter:${OPENROUTER_MODEL}`);
   });
 
