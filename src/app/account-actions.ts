@@ -20,8 +20,8 @@ import {
 function value(form: FormData, key: string) {
   return String(form.get(key) ?? "");
 }
-function fail(message: string): never {
-  redirect(`/account?error=${encodeURIComponent(message)}`);
+function fail(message: string, path = "/account"): never {
+  redirect(`${path}?error=${encodeURIComponent(message)}`);
 }
 
 export async function updateAccountAction(form: FormData) {
@@ -64,6 +64,7 @@ export async function updateAccountAction(form: FormData) {
 }
 
 export async function changeEmailAction(form: FormData) {
+  const returnPath = "/account/email";
   const user = await requireUser();
   const parsed = emailChangeSchema.safeParse({
     newEmail: value(form, "newEmail"),
@@ -71,9 +72,12 @@ export async function changeEmailAction(form: FormData) {
     currentPassword: value(form, "currentPassword"),
   });
   if (!parsed.success)
-    fail(parsed.error.issues[0]?.message ?? "Check the email fields.");
+    fail(
+      parsed.error.issues[0]?.message ?? "Check the email fields.",
+      returnPath,
+    );
   if (parsed.data.newEmail === user.email)
-    fail("Enter an email address different from your current one.");
+    fail("Enter an email address different from your current one.", returnPath);
 
   const throttleKey = await authThrottleKey("email-change", user.id);
   try {
@@ -83,6 +87,7 @@ export async function changeEmailAction(form: FormData) {
       error instanceof Error
         ? error.message
         : "Email change is temporarily unavailable.",
+      returnPath,
     );
   }
 
@@ -95,7 +100,7 @@ export async function changeEmailAction(form: FormData) {
     !(await bcrypt.compare(parsed.data.currentPassword, stored.passwordHash))
   ) {
     await recordAuthFailure(throttleKey);
-    fail("Current password is incorrect.");
+    fail("Current password is incorrect.", returnPath);
   }
   await clearAuthFailures(throttleKey);
 
@@ -119,21 +124,25 @@ export async function changeEmailAction(form: FormData) {
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     )
-      fail("That email address is already in use.");
+      fail("That email address is already in use.", returnPath);
     console.error(
       "[EduGrade] Email change failed",
       error instanceof Error ? error.message : "Unknown error",
     );
-    fail("Email address could not be changed. Please try again.");
+    fail(
+      "Email address could not be changed. Please try again.",
+      returnPath,
+    );
   }
 
   await createSession(user.id);
   redirect(
-    "/account?success=Email changed and other sessions signed out",
+    "/account/email?success=Email changed and other sessions signed out",
   );
 }
 
 export async function changePasswordAction(form: FormData) {
+  const returnPath = "/account/password";
   const user = await requireUser();
   const parsed = passwordChangeSchema.safeParse({
     currentPassword: value(form, "currentPassword"),
@@ -141,7 +150,10 @@ export async function changePasswordAction(form: FormData) {
     confirmPassword: value(form, "confirmPassword"),
   });
   if (!parsed.success)
-    fail(parsed.error.issues[0]?.message ?? "Check the password fields.");
+    fail(
+      parsed.error.issues[0]?.message ?? "Check the password fields.",
+      returnPath,
+    );
   const stored = await db.user.findUnique({
     where: { id: user.id },
     select: { passwordHash: true },
@@ -150,7 +162,7 @@ export async function changePasswordAction(form: FormData) {
     !stored ||
     !(await bcrypt.compare(parsed.data.currentPassword, stored.passwordHash))
   )
-    fail("Current password is incorrect.");
+    fail("Current password is incorrect.", returnPath);
   const passwordHash = await bcrypt.hash(parsed.data.newPassword, 12);
   await db.$transaction([
     db.user.update({ where: { id: user.id }, data: { passwordHash } }),
@@ -160,5 +172,7 @@ export async function changePasswordAction(form: FormData) {
     }),
   ]);
   await createSession(user.id);
-  redirect("/account?success=Password changed and other sessions signed out");
+  redirect(
+    "/account/password?success=Password changed and other sessions signed out",
+  );
 }

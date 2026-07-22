@@ -1,13 +1,10 @@
-import { KeyRound, MailCheck, UserRound } from "lucide-react";
+import Link from "next/link";
+import { ChevronRight, KeyRound, MailCheck, UserRound } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { Alert, PageHeader } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
 import { GradeSelect } from "@/components/education-selects";
-import {
-  changeEmailAction,
-  changePasswordAction,
-  updateAccountAction,
-} from "@/app/account-actions";
+import { updateAccountAction } from "@/app/account-actions";
 
 export default async function AccountPage({
   searchParams,
@@ -123,8 +120,12 @@ export default async function AccountPage({
             </SubmitButton>
           </form>
         </section>
-        <div style={{ display: "grid", gap: "1rem" }}>
-          <section className="card card-pad">
+        <aside style={{ display: "grid", gap: "1rem" }}>
+          <Link
+            href="/account/email"
+            className="card card-pad"
+            style={{ color: "inherit", textDecoration: "none" }}
+          >
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <MailCheck size={18} color="var(--teal)" />
               <div className="eyebrow">Sign-in email</div>
@@ -135,56 +136,24 @@ export default async function AccountPage({
             >
               Change email address
             </h2>
-            <form
-              action={changeEmailAction}
-              style={{ display: "grid", gap: ".85rem" }}
+            <p
+              style={{ color: "var(--muted)", lineHeight: 1.6, margin: 0 }}
             >
-              <label>
-                <span className="label">New email address</span>
-                <input
-                  className="field"
-                  name="newEmail"
-                  type="email"
-                  autoComplete="email"
-                  maxLength={254}
-                  required
-                />
-              </label>
-              <label>
-                <span className="label">Confirm new email</span>
-                <input
-                  className="field"
-                  name="confirmEmail"
-                  type="email"
-                  autoComplete="off"
-                  maxLength={254}
-                  required
-                />
-              </label>
-              <label>
-                <span className="label">Current password</span>
-                <input
-                  className="field"
-                  name="currentPassword"
-                  type="password"
-                  autoComplete="current-password"
-                  maxLength={128}
-                  required
-                />
-              </label>
-              <span className="hint">
-                This verifies control of your current account. Mailbox ownership
-                is not email-verified because outbound email is not configured.
-              </span>
-              <SubmitButton
-                pendingText="Changing email…"
-                confirmMessage="Change your sign-in email and sign out every other active session?"
-              >
-                Change email securely
-              </SubmitButton>
-            </form>
-          </section>
-          <section className="card card-pad">
+              Open a dedicated dashboard to verify your password and update the
+              email used to sign in.
+            </p>
+            <span
+              className="btn btn-secondary"
+              style={{ marginTop: "1rem", width: "fit-content" }}
+            >
+              Change Email <ChevronRight size={16} />
+            </span>
+          </Link>
+          <Link
+            href="/account/password"
+            className="card card-pad"
+            style={{ color: "inherit", textDecoration: "none" }}
+          >
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <KeyRound size={18} color="var(--coral)" />
               <div className="eyebrow">Security</div>
@@ -195,58 +164,20 @@ export default async function AccountPage({
             >
               Change password
             </h2>
-            <form
-              action={changePasswordAction}
-              style={{ display: "grid", gap: ".85rem" }}
+            <p
+              style={{ color: "var(--muted)", lineHeight: 1.6, margin: 0 }}
             >
-              <label>
-                <span className="label">Current password</span>
-                <input
-                  className="field"
-                  name="currentPassword"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                />
-              </label>
-              <label>
-                <span className="label">New password</span>
-                <input
-                  className="field"
-                  name="newPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  minLength={10}
-                  maxLength={128}
-                  pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{10,}"
-                  required
-                />
-                <span className="hint">
-                  Use 10+ characters with uppercase, lowercase, number, and
-                  symbol.
-                </span>
-              </label>
-              <label>
-                <span className="label">Confirm new password</span>
-                <input
-                  className="field"
-                  name="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  minLength={10}
-                  maxLength={128}
-                  required
-                />
-              </label>
-              <SubmitButton
-                pendingText="Securing account…"
-                confirmMessage="Change your password and sign out every other active session?"
-              >
-                Change password
-              </SubmitButton>
-            </form>
-          </section>
-        </div>
+              Open a separate security dashboard to choose a new password and
+              protect your active sessions.
+            </p>
+            <span
+              className="btn btn-secondary"
+              style={{ marginTop: "1rem", width: "fit-content" }}
+            >
+              Change Password <ChevronRight size={16} />
+            </span>
+          </Link>
+        </aside>
       </div>
     </div>
   );
