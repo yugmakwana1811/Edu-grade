@@ -71,6 +71,7 @@ describe("AI service", () => {
   it("fails over to another permitted model after a provider error", async () => {
     vi.stubEnv("OPENROUTER_API_KEY", "test-key-not-a-real-secret");
     vi.spyOn(console, "error").mockImplementation(() => undefined);
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
       .mockResolvedValueOnce(new Response(null, { status: 503 }))
@@ -101,6 +102,7 @@ describe("AI service", () => {
   it("uses a permitted failover when the primary model is rate limited", async () => {
     vi.stubEnv("OPENROUTER_API_KEY", "test-key-not-a-real-secret");
     vi.spyOn(console, "error").mockImplementation(() => undefined);
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
       .mockResolvedValueOnce(new Response(null, { status: 429 }))
@@ -127,6 +129,7 @@ describe("AI service", () => {
   it("falls back safely when OpenRouter returns an error", async () => {
     vi.stubEnv("OPENROUTER_API_KEY", "test-key-not-a-real-secret");
     vi.spyOn(console, "error").mockImplementation(() => undefined);
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(null, { status: 401 }),
     );

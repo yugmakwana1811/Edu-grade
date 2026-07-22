@@ -77,7 +77,7 @@ export async function generateAI(
         provider: `openrouter:${model.id}`,
       };
     } catch (error) {
-      console.error(
+      console.warn(
         `[EduGrade AI] OpenRouter model ${model.id} failed:`,
         error instanceof Error ? error.message : "Unknown provider error",
       );
