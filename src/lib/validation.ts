@@ -4,6 +4,51 @@ export const loginSchema = z.object({
   email: z.email().transform((v) => v.toLowerCase()),
   password: z.string().min(8, "Password must contain at least 8 characters"),
 });
+const strongPassword = z
+  .string()
+  .min(10, "Password must contain at least 10 characters")
+  .max(128, "Password is too long")
+  .regex(/[a-z]/, "Password must contain a lowercase letter")
+  .regex(/[A-Z]/, "Password must contain an uppercase letter")
+  .regex(/\d/, "Password must contain a number")
+  .regex(/[^A-Za-z0-9]/, "Password must contain a special character");
+export const registerSchema = z
+  .object({
+    name: z.string().trim().min(2).max(80),
+    email: z.email().trim().toLowerCase(),
+    password: strongPassword,
+    confirmPassword: z.string(),
+    role: z.enum(["TEACHER", "STUDENT"]),
+    school: z.string().trim().max(120).optional(),
+    subject: z.string().trim().max(80).optional(),
+    grade: z.string().trim().max(30).optional(),
+    rollNumber: z.string().trim().max(30).optional(),
+  })
+  .refine((value) => value.password === value.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+export const accountSchema = z.object({
+  name: z.string().trim().min(2).max(80),
+  school: z.string().trim().max(120).optional(),
+  subject: z.string().trim().max(80).optional(),
+  grade: z.string().trim().max(30).optional(),
+  rollNumber: z.string().trim().max(30).optional(),
+});
+export const passwordChangeSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Enter your current password"),
+    newPassword: strongPassword,
+    confirmPassword: z.string(),
+  })
+  .refine((value) => value.newPassword === value.confirmPassword, {
+    message: "New passwords do not match",
+    path: ["confirmPassword"],
+  })
+  .refine((value) => value.currentPassword !== value.newPassword, {
+    message: "Choose a password different from your current password",
+    path: ["newPassword"],
+  });
 export const classSchema = z.object({
   name: z.string().min(3).max(80),
   subject: z.string().min(2).max(60),
@@ -22,12 +67,50 @@ export const assignmentSchema = z.object({
   title: z.string().min(4).max(120),
   description: z.string().min(10).max(2000),
   instructions: z.string().max(2000).optional(),
+  topic: z.string().trim().min(2).max(120),
   type: z.enum(["Assignment", "Homework", "Test", "Worksheet", "Practice"]),
   maxMarks: z.coerce.number().int().min(1).max(500),
-  dueAt: z.coerce
-    .date()
-    .refine((d) => d > new Date(), "Deadline must be in the future"),
+  dueAt: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, "Enter a valid deadline")
+    .transform((value) => new Date(`${value}:00+05:30`))
+    .refine(
+      (deadline) => !Number.isNaN(deadline.getTime()) && deadline > new Date(),
+      "Deadline must be in the future",
+    ),
   publish: z.coerce.boolean().default(false),
+});
+const quizQuestionSchema = z
+  .object({
+    prompt: z.string().trim().min(5).max(500),
+    options: z.array(z.string().trim().min(1).max(200)).length(4),
+    correctAnswer: z.string().trim().min(1).max(200),
+    explanation: z.string().trim().min(5).max(1000),
+    marks: z.coerce.number().int().min(1).max(20),
+  })
+  .superRefine((question, ctx) => {
+    if (
+      new Set(question.options.map((option) => option.toLowerCase())).size !== 4
+    )
+      ctx.addIssue({
+        code: "custom",
+        message: "Each option must be unique",
+        path: ["options"],
+      });
+    if (!question.options.includes(question.correctAnswer))
+      ctx.addIssue({
+        code: "custom",
+        message: "The correct answer must match one option",
+        path: ["correctAnswer"],
+      });
+  });
+export const quizSchema = z.object({
+  classId: z.string().min(1),
+  title: z.string().trim().min(4).max(120),
+  description: z.string().trim().max(1000).optional(),
+  timeLimit: z.coerce.number().int().min(1).max(180).optional(),
+  publish: z.boolean().default(false),
+  questions: z.array(quizQuestionSchema).min(1).max(20),
 });
 export const reviewSchema = z
   .object({

@@ -4,4 +4,135 @@ import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { EmptyState, PageHeader } from "@/components/ui";
 import { formatDate } from "@/lib/utils";
-export default async function Results(){const user=await requireUser("STUDENT");const results=await db.result.findMany({where:{published:true,submission:{studentId:user.studentProfile!.id}},include:{submission:{include:{assignment:{include:{class:true}},feedback:{where:{approved:true},orderBy:{createdAt:"desc"},take:1}}}},orderBy:{publishedAt:"desc"}});return <div className="page"><PageHeader eyebrow="Results and feedback" title="Turn feedback into your next step" description="Marks appear only after your teacher publishes them. Read the feedback, then use the revision action."/>{results.length?<div style={{display:"grid",gap:"1rem"}}>{results.map(r=>{const a=r.submission.assignment;const percent=Math.round(Number(r.marks)/a.maxMarks*100);return <article className="card card-pad" key={r.id}><div style={{display:"grid",gridTemplateColumns:"110px 1fr",gap:"1.2rem",alignItems:"start"}}><div style={{aspectRatio:"1",display:"grid",placeItems:"center",background:percent>=75?"var(--teal-soft)":"var(--coral-soft)",borderRadius:16,textAlign:"center"}}><div><Award size={24} color={percent>=75?"var(--teal)":"var(--coral)"}/><strong className="display" style={{fontSize:"1.9rem",display:"block"}}>{Number(r.marks)}/{a.maxMarks}</strong><small>{percent}%</small></div></div><div><span className="badge badge-teal">Published {r.publishedAt?formatDate(r.publishedAt):""}</span><h2 className="display" style={{fontSize:"1.7rem",margin:".6rem 0 .2rem"}}>{a.title}</h2><div className="hint">{a.class.name} · {a.class.subject}</div><h3 style={{fontSize:".85rem",marginTop:"1.2rem"}}>Teacher feedback</h3><p style={{color:"var(--muted)",lineHeight:1.65,whiteSpace:"pre-wrap"}}>{r.submission.feedback[0]?.content??r.teacherNote??"No written feedback was added."}</p><div style={{display:"flex",gap:".6rem",flexWrap:"wrap"}}><Link className="btn btn-primary" href={`/student/ai-help?topic=${encodeURIComponent(a.topic??a.title)}`}><Sparkles size={16}/> Build revision plan</Link><Link className="btn btn-secondary" href={`/student/assignments/${a.id}`}>View submitted pages <ArrowRight size={16}/></Link></div></div></div></article>})}</div>:<EmptyState title="No published results yet" description="Submitted work stays private until your teacher completes the review and publishes the result."/>}</div>}
+export default async function Results() {
+  const user = await requireUser("STUDENT");
+  const results = await db.result.findMany({
+    where: {
+      published: true,
+      submission: { studentId: user.studentProfile!.id },
+    },
+    include: {
+      submission: {
+        include: {
+          assignment: { include: { class: true } },
+          feedback: {
+            where: { approved: true },
+            orderBy: { createdAt: "desc" },
+            take: 1,
+          },
+        },
+      },
+    },
+    orderBy: { publishedAt: "desc" },
+  });
+  return (
+    <div className="page">
+      <PageHeader
+        eyebrow="Results and feedback"
+        title="Turn feedback into your next step"
+        description="Marks appear only after your teacher publishes them. Read the feedback, then use the revision action."
+      />
+      {results.length ? (
+        <div style={{ display: "grid", gap: "1rem" }}>
+          {results.map((r) => {
+            const a = r.submission.assignment;
+            const percent = Math.round((Number(r.marks) / a.maxMarks) * 100);
+            return (
+              <article className="card card-pad" key={r.id}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "110px 1fr",
+                    gap: "1.2rem",
+                    alignItems: "start",
+                  }}
+                >
+                  <div
+                    style={{
+                      aspectRatio: "1",
+                      display: "grid",
+                      placeItems: "center",
+                      background:
+                        percent >= 75
+                          ? "var(--teal-soft)"
+                          : "var(--coral-soft)",
+                      borderRadius: 16,
+                      textAlign: "center",
+                    }}
+                  >
+                    <div>
+                      <Award
+                        size={24}
+                        color={percent >= 75 ? "var(--teal)" : "var(--coral)"}
+                      />
+                      <strong
+                        className="display"
+                        style={{ fontSize: "1.9rem", display: "block" }}
+                      >
+                        {Number(r.marks)}/{a.maxMarks}
+                      </strong>
+                      <small>{percent}%</small>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="badge badge-teal">
+                      Published {r.publishedAt ? formatDate(r.publishedAt) : ""}
+                    </span>
+                    <h2
+                      className="display"
+                      style={{ fontSize: "1.7rem", margin: ".6rem 0 .2rem" }}
+                    >
+                      {a.title}
+                    </h2>
+                    <div className="hint">
+                      {a.class.name} · {a.class.subject}
+                    </div>
+                    <h3 style={{ fontSize: ".85rem", marginTop: "1.2rem" }}>
+                      Teacher feedback
+                    </h3>
+                    <p
+                      style={{
+                        color: "var(--muted)",
+                        lineHeight: 1.65,
+                        whiteSpace: "pre-wrap",
+                      }}
+                    >
+                      {r.submission.feedback[0]?.content ??
+                        r.teacherNote ??
+                        "No written feedback was added."}
+                    </p>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: ".6rem",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <Link
+                        className="btn btn-primary"
+                        href={`/student/ai-help?topic=${encodeURIComponent(a.topic ?? a.title)}`}
+                      >
+                        <Sparkles size={16} /> Build revision plan
+                      </Link>
+                      <Link
+                        className="btn btn-secondary"
+                        href={`/student/assignments/${a.id}`}
+                      >
+                        View submitted pages <ArrowRight size={16} />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      ) : (
+        <EmptyState
+          title="No published results yet"
+          description="Submitted work stays private until your teacher completes the review and publishes the result."
+        />
+      )}
+    </div>
+  );
+}

@@ -1,10 +1,28 @@
 import "server-only";
 import type { AIContentType } from "@prisma/client";
 
-export type GenerateInput = { type: AIContentType; topic: string; grade: string; details?: string; context?: string; audience?: "teacher" | "student" };
+export type GenerateInput = {
+  type: AIContentType;
+  topic: string;
+  grade: string;
+  details?: string;
+  context?: string;
+  audience?: "teacher" | "student";
+};
 export type GenerateResult = { content: string; provider: string };
 
-const label: Record<AIContentType, string> = { LESSON_PLAN: "Lesson plan", EXPLANATION: "Topic explanation", NOTES: "Study notes", QUESTIONS: "Question set", QUIZ: "Quiz", FEEDBACK: "Feedback suggestion", REVISION_SHEET: "Revision sheet", ANNOUNCEMENT: "Announcement", DOUBT_HELP: "Doubt support", REVISION_HELP: "Revision plan" };
+const label: Record<AIContentType, string> = {
+  LESSON_PLAN: "Lesson plan",
+  EXPLANATION: "Topic explanation",
+  NOTES: "Study notes",
+  QUESTIONS: "Question set",
+  QUIZ: "Quiz",
+  FEEDBACK: "Feedback suggestion",
+  REVISION_SHEET: "Revision sheet",
+  ANNOUNCEMENT: "Announcement",
+  DOUBT_HELP: "Doubt support",
+  REVISION_HELP: "Revision plan",
+};
 
 function fallback(i: GenerateInput): string {
   const head = `${label[i.type]}: ${i.topic} · Class ${i.grade}`;
@@ -24,19 +42,52 @@ function fallback(i: GenerateInput): string {
     DOUBT_HELP: `${head}\n\nLet’s unpack this without giving away assessed work. First, write what you already know and identify the exact step where the reasoning becomes unclear. Use this hint: connect the question facts to the governing rule before choosing a formula or entry.\n\nTry it\nExplain your next step in one sentence. If it still feels uncertain, ask your teacher with the working you have attempted.`,
     REVISION_HELP: `${head}\n\nToday: 10-minute recall, one guided example, one independent question.\nTomorrow: correct errors and retry without notes.\nAfter 3 days: mixed practice with a related topic.\nAfter 7 days: timed retrieval check.\n\nFocus signal\nPrioritise errors in method before speed or presentation.`,
   };
-  return (templates[i.type] ?? `${head}\n\nCreate a clear, age-appropriate learning resource with worked examples and checks for understanding.`) + (i.details ? `\n\n${studentFacing ? "Learner context" : "Teacher context"}\n${i.details}` : "") + safety;
+  return (
+    (templates[i.type] ??
+      `${head}\n\nCreate a clear, age-appropriate learning resource with worked examples and checks for understanding.`) +
+    (i.details
+      ? `\n\n${studentFacing ? "Learner context" : "Teacher context"}\n${i.details}`
+      : "") +
+    safety
+  );
 }
 
-export async function generateAI(input: GenerateInput): Promise<GenerateResult> {
+export async function generateAI(
+  input: GenerateInput,
+): Promise<GenerateResult> {
   const apiKey = process.env.AI_GATEWAY_API_KEY;
-  if (!apiKey) return { content: fallback(input), provider: "deterministic-fallback" };
+  if (!apiKey)
+    return { content: fallback(input), provider: "deterministic-fallback" };
   try {
-    const systemPrompt = input.audience === "student"
-      ? "You are an Indian CBSE learning assistant. Provide hints, explanations, and revision support without completing assessed work. State uncertainty, encourage original working, and recommend teacher verification when needed."
-      : "You are an Indian CBSE teaching assistant. Produce accurate, editable suggestions. Never make final grading decisions. End with a teacher-verification reminder.";
-    const response = await fetch("https://ai-gateway.vercel.sh/v1/chat/completions", { method: "POST", headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" }, body: JSON.stringify({ model: process.env.AI_MODEL ?? "openai/gpt-5-mini", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: JSON.stringify(input) }] }), signal: AbortSignal.timeout(45000) });
+    const systemPrompt =
+      input.audience === "student"
+        ? "You are an Indian CBSE learning assistant. Provide hints, explanations, and revision support without completing assessed work. State uncertainty, encourage original working, and recommend teacher verification when needed."
+        : "You are an Indian CBSE teaching assistant. Produce accurate, editable suggestions. Never make final grading decisions. End with a teacher-verification reminder.";
+    const response = await fetch(
+      "https://ai-gateway.vercel.sh/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: process.env.AI_MODEL ?? "openai/gpt-5-mini",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: JSON.stringify(input) },
+          ],
+        }),
+        signal: AbortSignal.timeout(45000),
+      },
+    );
     if (!response.ok) throw new Error("AI gateway unavailable");
     const data = await response.json();
-    return { content: data.choices?.[0]?.message?.content || fallback(input), provider: process.env.AI_MODEL ?? "ai-gateway" };
-  } catch { return { content: fallback(input), provider: "deterministic-fallback" }; }
+    return {
+      content: data.choices?.[0]?.message?.content || fallback(input),
+      provider: process.env.AI_MODEL ?? "ai-gateway",
+    };
+  } catch {
+    return { content: fallback(input), provider: "deterministic-fallback" };
+  }
 }

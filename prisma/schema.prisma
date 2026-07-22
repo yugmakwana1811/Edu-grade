@@ -11,23 +11,27 @@ enum Role {
   TEACHER
   STUDENT
 }
+
 enum AssignmentStatus {
   DRAFT
   PUBLISHED
   CLOSED
 }
+
 enum SubmissionStatus {
   DRAFT
   SUBMITTED
   REVIEWED
   PUBLISHED
 }
+
 enum AttendanceStatus {
   PRESENT
   ABSENT
   LATE
   EXCUSED
 }
+
 enum AIContentType {
   LESSON_PLAN
   EXPLANATION
@@ -42,20 +46,30 @@ enum AIContentType {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  name         String
-  role         Role
-  avatarUrl    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             String                @id @default(cuid())
+  email          String                @unique
+  passwordHash   String
+  name           String
+  role           Role
+  avatarUrl      String?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
   teacherProfile TeacherProfile?
   studentProfile StudentProfile?
-  sessions Session[]
-  activities ActivityLog[]
-  generations AIContentGeneration[]
-  announcements Announcement[]
+  sessions       Session[]
+  activities     ActivityLog[]
+  generations    AIContentGeneration[]
+  announcements  Announcement[]
+}
+
+model AuthThrottle {
+  key          String    @id
+  attempts     Int       @default(0)
+  windowStart  DateTime  @default(now())
+  blockedUntil DateTime?
+  updatedAt    DateTime  @updatedAt
+
+  @@index([updatedAt])
 }
 
 model Session {
@@ -64,231 +78,239 @@ model Session {
   userId    String
   expiresAt DateTime
   createdAt DateTime @default(now())
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
 }
 
 model TeacherProfile {
-  id String @id @default(cuid())
-  userId String @unique
-  school String?
+  id      String      @id @default(cuid())
+  userId  String      @unique
+  school  String?
   subject String?
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   classes ClassRoom[]
 }
 
 model StudentProfile {
-  id String @id @default(cuid())
-  userId String @unique
-  school String?
-  grade String?
-  rollNumber String?
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  enrollments ClassEnrollment[]
-  submissions Submission[]
+  id           String             @id @default(cuid())
+  userId       String             @unique
+  school       String?
+  grade        String?
+  rollNumber   String?
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enrollments  ClassEnrollment[]
+  submissions  Submission[]
   quizAttempts QuizAttempt[]
-  attendance AttendanceRecord[]
+  attendance   AttendanceRecord[]
 }
 
 model ClassRoom {
-  id String @id @default(cuid())
-  name String
-  subject String
-  grade String
-  code String @unique
-  description String?
-  teacherId String
-  createdAt DateTime @default(now())
-  teacher TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  enrollments ClassEnrollment[]
-  assignments Assignment[]
-  quizzes Quiz[]
-  resources Resource[]
+  id            String             @id @default(cuid())
+  name          String
+  subject       String
+  grade         String
+  code          String             @unique
+  description   String?
+  teacherId     String
+  createdAt     DateTime           @default(now())
+  teacher       TeacherProfile     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  enrollments   ClassEnrollment[]
+  assignments   Assignment[]
+  quizzes       Quiz[]
+  resources     Resource[]
   announcements Announcement[]
-  attendance AttendanceRecord[]
+  attendance    AttendanceRecord[]
+
   @@index([teacherId])
 }
 
 model ClassEnrollment {
-  id String @id @default(cuid())
-  classId String
+  id        String         @id @default(cuid())
+  classId   String
   studentId String
-  joinedAt DateTime @default(now())
-  class ClassRoom @relation(fields: [classId], references: [id], onDelete: Cascade)
-  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  joinedAt  DateTime       @default(now())
+  class     ClassRoom      @relation(fields: [classId], references: [id], onDelete: Cascade)
+  student   StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
   @@unique([classId, studentId])
 }
 
 model Assignment {
-  id String @id @default(cuid())
-  classId String
-  title String
-  description String
+  id           String                 @id @default(cuid())
+  classId      String
+  title        String
+  description  String
   instructions String?
-  type String @default("Assignment")
-  maxMarks Int
-  dueAt DateTime
-  status AssignmentStatus @default(DRAFT)
-  topic String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  class ClassRoom @relation(fields: [classId], references: [id], onDelete: Cascade)
-  attachments AssignmentAttachment[]
-  submissions Submission[]
+  type         String                 @default("Assignment")
+  maxMarks     Int
+  dueAt        DateTime
+  status       AssignmentStatus       @default(DRAFT)
+  topic        String?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  class        ClassRoom              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  attachments  AssignmentAttachment[]
+  submissions  Submission[]
+
   @@index([classId, status])
 }
 
 model AssignmentAttachment {
-  id String @id @default(cuid())
+  id           String     @id @default(cuid())
   assignmentId String
-  name String
-  url String
-  mimeType String
-  size Int
-  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  name         String
+  url          String
+  mimeType     String
+  size         Int
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
 }
 
 model Submission {
-  id String @id @default(cuid())
+  id           String           @id @default(cuid())
   assignmentId String
-  studentId String
-  status SubmissionStatus @default(DRAFT)
-  note String?
-  submittedAt DateTime?
-  updatedAt DateTime @updatedAt
-  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  pages SubmissionPage[]
-  result Result?
-  feedback Feedback[]
+  studentId    String
+  status       SubmissionStatus @default(DRAFT)
+  note         String?
+  submittedAt  DateTime?
+  updatedAt    DateTime         @updatedAt
+  assignment   Assignment       @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student      StudentProfile   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  pages        SubmissionPage[]
+  result       Result?
+  feedback     Feedback[]
+
   @@unique([assignmentId, studentId])
   @@index([status])
 }
 
 model SubmissionPage {
-  id String @id @default(cuid())
+  id           String     @id @default(cuid())
   submissionId String
-  pageNumber Int
-  name String
-  url String
-  mimeType String
-  size Int
-  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  pageNumber   Int
+  name         String
+  url          String
+  mimeType     String
+  size         Int
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
   @@unique([submissionId, pageNumber])
 }
 
 model Result {
-  id String @id @default(cuid())
-  submissionId String @unique
-  marks Decimal @db.Decimal(5,2)
-  published Boolean @default(false)
-  publishedAt DateTime?
-  teacherNote String?
-  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  id           String     @id @default(cuid())
+  submissionId String     @unique
+  marks        Decimal    @db.Decimal(5, 2)
+  published    Boolean    @default(false)
+  publishedAt  DateTime?
+  teacherNote  String?
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
 }
 
 model Feedback {
-  id String @id @default(cuid())
-  submissionId String
-  content String
-  isAiSuggested Boolean @default(false)
-  approved Boolean @default(false)
-  createdAt DateTime @default(now())
-  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  id            String     @id @default(cuid())
+  submissionId  String
+  content       String
+  isAiSuggested Boolean    @default(false)
+  approved      Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+  submission    Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
 }
 
 model Quiz {
-  id String @id @default(cuid())
-  classId String
-  title String
+  id          String         @id @default(cuid())
+  classId     String
+  title       String
   description String?
-  published Boolean @default(false)
-  timeLimit Int?
-  createdAt DateTime @default(now())
-  class ClassRoom @relation(fields: [classId], references: [id], onDelete: Cascade)
-  questions QuizQuestion[]
-  attempts QuizAttempt[]
+  published   Boolean        @default(false)
+  timeLimit   Int?
+  createdAt   DateTime       @default(now())
+  class       ClassRoom      @relation(fields: [classId], references: [id], onDelete: Cascade)
+  questions   QuizQuestion[]
+  attempts    QuizAttempt[]
 }
 
 model QuizQuestion {
-  id String @id @default(cuid())
-  quizId String
-  prompt String
-  options Json
+  id            String  @id @default(cuid())
+  quizId        String
+  prompt        String
+  options       Json
   correctAnswer String
-  explanation String?
-  marks Int @default(1)
-  order Int
-  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  explanation   String?
+  marks         Int     @default(1)
+  order         Int
+  quiz          Quiz    @relation(fields: [quizId], references: [id], onDelete: Cascade)
 }
 
 model QuizAttempt {
-  id String @id @default(cuid())
-  quizId String
-  studentId String
-  answers Json
-  score Decimal @db.Decimal(5,2)
-  submittedAt DateTime @default(now())
-  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  id          String         @id @default(cuid())
+  quizId      String
+  studentId   String
+  answers     Json
+  score       Decimal        @db.Decimal(5, 2)
+  submittedAt DateTime       @default(now())
+  quiz        Quiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  student     StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }
 
 model Resource {
-  id String @id @default(cuid())
-  classId String
-  title String
+  id          String    @id @default(cuid())
+  classId     String
+  title       String
   description String?
-  type String
-  url String
-  mimeType String
-  size Int
-  createdAt DateTime @default(now())
-  class ClassRoom @relation(fields: [classId], references: [id], onDelete: Cascade)
+  type        String
+  url         String
+  mimeType    String
+  size        Int
+  createdAt   DateTime  @default(now())
+  class       ClassRoom @relation(fields: [classId], references: [id], onDelete: Cascade)
 }
 
 model Announcement {
-  id String @id @default(cuid())
-  classId String
-  authorId String
-  title String
-  content String
-  publishedAt DateTime @default(now())
-  class ClassRoom @relation(fields: [classId], references: [id], onDelete: Cascade)
-  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  id          String    @id @default(cuid())
+  classId     String
+  authorId    String
+  title       String
+  content     String
+  publishedAt DateTime  @default(now())
+  class       ClassRoom @relation(fields: [classId], references: [id], onDelete: Cascade)
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
 
 model AttendanceRecord {
-  id String @id @default(cuid())
-  classId String
+  id        String           @id @default(cuid())
+  classId   String
   studentId String
-  date DateTime
-  status AttendanceStatus
-  note String?
-  class ClassRoom @relation(fields: [classId], references: [id], onDelete: Cascade)
-  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  date      DateTime
+  status    AttendanceStatus
+  note      String?
+  class     ClassRoom        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  student   StudentProfile   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
   @@unique([classId, studentId, date])
 }
 
 model AIContentGeneration {
-  id String @id @default(cuid())
-  userId String
-  type AIContentType
-  prompt Json
-  output String @db.Text
-  provider String @default("deterministic-fallback")
-  approved Boolean @default(false)
-  createdAt DateTime @default(now())
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String        @id @default(cuid())
+  userId    String
+  type      AIContentType
+  prompt    Json
+  output    String        @db.Text
+  provider  String        @default("deterministic-fallback")
+  approved  Boolean       @default(false)
+  createdAt DateTime      @default(now())
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ActivityLog {
-  id String @id @default(cuid())
-  userId String
-  action String
+  id         String   @id @default(cuid())
+  userId     String
+  action     String
   entityType String
-  entityId String?
-  metadata Json?
-  createdAt DateTime @default(now())
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entityId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId, createdAt])
 }

@@ -28,7 +28,7 @@ export default async function StudentAssignment({
   const a = await db.assignment.findFirst({
     where: {
       id,
-      status: "PUBLISHED",
+      status: { in: ["PUBLISHED", "CLOSED"] },
       class: { enrollments: { some: { studentId: user.studentProfile!.id } } },
     },
     include: {
@@ -246,6 +246,24 @@ export default async function StudentAssignment({
                   />
                 ))}
               </div>
+            </div>
+          ) : a.status === "CLOSED" ? (
+            <div style={{ textAlign: "center", padding: "3rem 1rem" }}>
+              <LockKeyhole
+                size={43}
+                color="var(--muted)"
+                style={{ margin: "auto" }}
+              />
+              <h2
+                className="display"
+                style={{ fontSize: "2rem", margin: "1rem 0 .4rem" }}
+              >
+                Submissions are closed
+              </h2>
+              <p className="hint">
+                You can still read the assignment brief and attached paper, but
+                this class is no longer accepting answer pages for this work.
+              </p>
             </div>
           ) : (
             <div>

@@ -1,0 +1,23 @@
+# EduGrade AI production scope
+
+## Implemented
+
+- Self-service teacher and student registration with strong password policy, hashed credentials, persistent database sessions, HTTP-only cookies, role-protected routes, login throttling, profile editing, password changes, and other-session invalidation.
+- Teacher class creation and editing, secure six-character enrollment codes, code rotation, student enrollment, roster viewing, and teacher-controlled removal.
+- Assignment draft creation and editing, optional private attachments, publishing, closing submissions, deadline validation in the India classroom timezone, and persistent status tracking.
+- Private multi-image handwritten answer uploads with type/size validation, ordered previews, removal before final submission, metadata persistence, and protected teacher/student file routes.
+- Teacher review queues, answer-page viewing, editable AI feedback suggestions, mark validation, draft review state, teacher-controlled result publication, and student result history.
+- Teacher-authored quizzes with 1–20 validated multiple-choice questions, unique options, explanations, draft/publish/delete lifecycle, student attempts, deterministic scoring, retry support, and attempt analytics.
+- AI lesson plans, explanations, notes, questions, quiz drafts, revision sheets, announcements, feedback suggestions, student doubt help, and revision support through a replaceable server-only service abstraction.
+- Private resource uploads, resource deletion, announcements and deletion, attendance records, activity logs, loading states, error boundaries, empty states, confirmation dialogs, and responsive teacher/student navigation.
+- Teacher and student dashboards and analytics calculated from persistent assignments, results, attendance, quizzes, and activity data. Topic insights show evidence counts and remain advisory.
+- Versioned PostgreSQL baseline migration, idempotent expo seed, environment template, CI quality gate, deployment instructions, testing instructions, health endpoint, security headers, and private Vercel Blob integration.
+
+## Deliberate limitations
+
+- AI output is assistive only. It does not autonomously grade handwriting or make final academic decisions; teachers review, edit, set marks, and publish.
+- Without `AI_GATEWAY_API_KEY`, the server uses deterministic curriculum-safe templates rather than a generative model.
+- Quiz duration is a suggested pacing target, not a server-enforced countdown. This avoids claiming timed-exam enforcement that is not implemented.
+- Account email verification and automated email-based password recovery are not enabled because no transactional email provider is configured. Signed-in users can change passwords; locked-out users require verified support assistance.
+- Notifications are currently in-app announcements and dashboard states; email, SMS, and push delivery are not configured.
+- The product is optimized for CBSE classrooms in the `Asia/Kolkata` timezone and provides teacher-support analytics, not a school-wide SIS, fee, or parent portal.

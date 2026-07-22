@@ -6,4 +6,156 @@ import { Alert, EmptyState, PageHeader } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
 import { createClassAction } from "@/app/actions";
 
-export default async function TeacherClasses({ searchParams }: { searchParams: Promise<{ error?: string }> }) { const { error } = await searchParams; const user = await requireUser("TEACHER"); const classes = await db.classRoom.findMany({ where: { teacherId: user.teacherProfile!.id }, include: { _count: { select: { enrollments: true, assignments: true } } }, orderBy: { createdAt: "desc" } }); return <div className="page"><PageHeader eyebrow="Class management" title="Classes and cohorts" description="Create teaching spaces, share class codes, and see each cohort at a glance."/><Alert error={error}/><div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.45fr) minmax(290px,.7fr)", gap: "1rem", alignItems: "start" }}><section>{classes.length ? <div className="grid-auto">{classes.map((c)=><Link href={`/teacher/classes/${c.id}`} className="card card-pad" key={c.id} style={{ display: "block" }}><div style={{ display: "flex", justifyContent: "space-between", gap: ".6rem" }}><span className="badge badge-teal">Class {c.grade}</span><ArrowRight size={18} color="var(--muted)"/></div><h2 className="display" style={{ fontSize: "1.65rem", margin: ".8rem 0 .2rem" }}>{c.name}</h2><p style={{ color: "var(--muted)", margin: 0 }}>{c.subject}</p><div style={{ display: "flex", gap: "1rem", marginTop: "1rem", fontSize: ".8rem" }}><span><Users size={14} style={{ display: "inline", verticalAlign: "middle" }}/> {c._count.enrollments} students</span><span>{c._count.assignments} assignments</span></div><div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "1rem", background: "#f5f6f4", padding: ".65rem", borderRadius: 9 }}><span className="hint">Class code</span><strong style={{ letterSpacing: ".14em" }}>{c.code}</strong></div></Link>)}</div> : <EmptyState title="Create your first class" description="Every assignment, resource, quiz and announcement starts with a class."/>}</section><aside className="card card-pad"><div className="eyebrow">New class</div><h2 className="display" style={{ fontSize: "1.7rem", margin: ".3rem 0 1rem" }}>Set up a teaching space</h2><form action={createClassAction} style={{ display: "grid", gap: ".85rem" }}><label><span className="label">Class name</span><input className="field" name="name" placeholder="Class 11 Commerce" minLength={3} required/></label><label><span className="label">Subject</span><input className="field" name="subject" placeholder="Business Studies" required/></label><label><span className="label">Grade</span><input className="field" name="grade" placeholder="11" required/></label><label><span className="label">Description <span className="hint">(optional)</span></span><textarea className="field" name="description" maxLength={300} placeholder="Topics, section, or classroom note"/></label><SubmitButton><Plus size={16}/> Create class</SubmitButton></form></aside></div></div>; }
+export default async function TeacherClasses({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
+  const user = await requireUser("TEACHER");
+  const classes = await db.classRoom.findMany({
+    where: { teacherId: user.teacherProfile!.id },
+    include: { _count: { select: { enrollments: true, assignments: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+  return (
+    <div className="page">
+      <PageHeader
+        eyebrow="Class management"
+        title="Classes and cohorts"
+        description="Create teaching spaces, share class codes, and see each cohort at a glance."
+      />
+      <Alert error={error} />
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "minmax(0,1.45fr) minmax(290px,.7fr)",
+          gap: "1rem",
+          alignItems: "start",
+        }}
+      >
+        <section>
+          {classes.length ? (
+            <div className="grid-auto">
+              {classes.map((c) => (
+                <Link
+                  href={`/teacher/classes/${c.id}`}
+                  className="card card-pad"
+                  key={c.id}
+                  style={{ display: "block" }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: ".6rem",
+                    }}
+                  >
+                    <span className="badge badge-teal">Class {c.grade}</span>
+                    <ArrowRight size={18} color="var(--muted)" />
+                  </div>
+                  <h2
+                    className="display"
+                    style={{ fontSize: "1.65rem", margin: ".8rem 0 .2rem" }}
+                  >
+                    {c.name}
+                  </h2>
+                  <p style={{ color: "var(--muted)", margin: 0 }}>
+                    {c.subject}
+                  </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "1rem",
+                      marginTop: "1rem",
+                      fontSize: ".8rem",
+                    }}
+                  >
+                    <span>
+                      <Users
+                        size={14}
+                        style={{ display: "inline", verticalAlign: "middle" }}
+                      />{" "}
+                      {c._count.enrollments} students
+                    </span>
+                    <span>{c._count.assignments} assignments</span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      marginTop: "1rem",
+                      background: "#f5f6f4",
+                      padding: ".65rem",
+                      borderRadius: 9,
+                    }}
+                  >
+                    <span className="hint">Class code</span>
+                    <strong style={{ letterSpacing: ".14em" }}>{c.code}</strong>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              title="Create your first class"
+              description="Every assignment, resource, quiz and announcement starts with a class."
+            />
+          )}
+        </section>
+        <aside className="card card-pad">
+          <div className="eyebrow">New class</div>
+          <h2
+            className="display"
+            style={{ fontSize: "1.7rem", margin: ".3rem 0 1rem" }}
+          >
+            Set up a teaching space
+          </h2>
+          <form
+            action={createClassAction}
+            style={{ display: "grid", gap: ".85rem" }}
+          >
+            <label>
+              <span className="label">Class name</span>
+              <input
+                className="field"
+                name="name"
+                placeholder="Class 11 Commerce"
+                minLength={3}
+                required
+              />
+            </label>
+            <label>
+              <span className="label">Subject</span>
+              <input
+                className="field"
+                name="subject"
+                placeholder="Business Studies"
+                required
+              />
+            </label>
+            <label>
+              <span className="label">Grade</span>
+              <input className="field" name="grade" placeholder="11" required />
+            </label>
+            <label>
+              <span className="label">
+                Description <span className="hint">(optional)</span>
+              </span>
+              <textarea
+                className="field"
+                name="description"
+                maxLength={300}
+                placeholder="Topics, section, or classroom note"
+              />
+            </label>
+            <SubmitButton>
+              <Plus size={16} /> Create class
+            </SubmitButton>
+          </form>
+        </aside>
+      </div>
+    </div>
+  );
+}

@@ -89,6 +89,21 @@ export default async function NewAssignment({
           />
         </label>
         <label>
+          <span className="label">Primary topic</span>
+          <input
+            className="field"
+            name="topic"
+            minLength={2}
+            maxLength={120}
+            required
+            placeholder="Goodwill adjustment"
+          />
+          <span className="hint">
+            Used to calculate evidence-based topic insights after results are
+            published.
+          </span>
+        </label>
+        <label>
           <span className="label">Learning purpose / description</span>
           <textarea
             className="field"

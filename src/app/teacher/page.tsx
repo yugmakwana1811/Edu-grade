@@ -1,15 +1,276 @@
 import Link from "next/link";
-import { ArrowRight, Bot, CheckCircle2, Clock3, FileCheck2, GraduationCap, Megaphone, School, Sparkles, Users } from "lucide-react";
+import {
+  ArrowRight,
+  Bot,
+  CheckCircle2,
+  Clock3,
+  FileCheck2,
+  GraduationCap,
+  Megaphone,
+  School,
+  Sparkles,
+  Users,
+} from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { PageHeader, SafetyNote, StatCard } from "@/components/ui";
 import { formatDateTime } from "@/lib/utils";
+import { topicPerformance } from "@/lib/analytics";
 
 export default async function TeacherDashboard() {
-  const user = await requireUser("TEACHER"); const tid = user.teacherProfile!.id;
-  const [classes, students, active, pending, results, announcements, generations, activities] = await Promise.all([
-    db.classRoom.count({ where: { teacherId: tid } }), db.classEnrollment.count({ where: { class: { teacherId: tid } } }), db.assignment.count({ where: { class: { teacherId: tid }, status: "PUBLISHED", dueAt: { gte: new Date() } } }), db.submission.count({ where: { assignment: { class: { teacherId: tid } }, status: "SUBMITTED" } }), db.result.findMany({ where: { submission: { assignment: { class: { teacherId: tid } } }, published: true }, select: { marks: true, submission: { select: { assignment: { select: { maxMarks: true } } } } } }), db.announcement.count({ where: { class: { teacherId: tid } } }), db.aIContentGeneration.count({ where: { userId: user.id } }), db.activityLog.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: 6 }),
+  const user = await requireUser("TEACHER");
+  const tid = user.teacherProfile!.id;
+  const [
+    classes,
+    students,
+    active,
+    pending,
+    results,
+    announcements,
+    generations,
+    activities,
+  ] = await Promise.all([
+    db.classRoom.count({ where: { teacherId: tid } }),
+    db.classEnrollment.count({ where: { class: { teacherId: tid } } }),
+    db.assignment.count({
+      where: {
+        class: { teacherId: tid },
+        status: "PUBLISHED",
+        dueAt: { gte: new Date() },
+      },
+    }),
+    db.submission.count({
+      where: { assignment: { class: { teacherId: tid } }, status: "SUBMITTED" },
+    }),
+    db.result.findMany({
+      where: {
+        submission: { assignment: { class: { teacherId: tid } } },
+        published: true,
+      },
+      select: {
+        marks: true,
+        submission: {
+          select: {
+            assignment: {
+              select: { maxMarks: true, topic: true, title: true },
+            },
+          },
+        },
+      },
+    }),
+    db.announcement.count({ where: { class: { teacherId: tid } } }),
+    db.aIContentGeneration.count({ where: { userId: user.id } }),
+    db.activityLog.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 6,
+    }),
   ]);
-  const average = results.length ? Math.round(results.reduce((a,r)=>a + Number(r.marks) / r.submission.assignment.maxMarks * 100,0)/results.length) : 0; const saved = Math.round(generations * 18 + results.length * 7);
-  return <div className="page"><PageHeader eyebrow="Teacher overview" title="Your teaching command centre" description="See what needs attention, pick up where you left off, and keep every class moving." action={<Link className="btn btn-primary" href="/teacher/ai-tools"><Sparkles size={17}/> Create with AI</Link>}/><div className="grid-auto"> <StatCard label="Classes" value={classes} detail="Active teaching spaces" icon={School}/><StatCard label="Students" value={students} detail="Across all classes" icon={Users}/><StatCard label="Active assignments" value={active} detail="Published and open" icon={FileCheck2} tone="coral"/><StatCard label="Unchecked work" value={pending} detail={pending ? "Needs your review" : "You’re all caught up"} icon={Clock3} tone="gold"/><StatCard label="Average score" value={`${average}%`} detail="Published results" icon={GraduationCap}/><StatCard label="Announcements" value={announcements} detail="Sent to classes" icon={Megaphone}/><StatCard label="AI materials" value={generations} detail="Generated suggestions" icon={Bot} tone="coral"/><StatCard label="Workload saved" value={`${saved}m`} detail="Estimated assistance time" icon={Clock3} tone="gold"/></div><div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.5fr) minmax(280px,.8fr)", gap: "1rem", marginTop: "1rem" }}><section className="card card-pad"><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><div><div className="eyebrow">AI recommendations</div><h2 className="display" style={{ fontSize: "1.8rem", margin: ".25rem 0 1rem" }}>A useful next move</h2></div><Sparkles color="var(--coral)"/></div><div style={{ padding: "1rem", background: "var(--teal-soft)", borderRadius: 12, marginBottom: ".7rem" }}><strong>{pending > 0 ? `Review ${pending} submitted response${pending > 1 ? "s" : ""}` : "Strengthen goodwill revision"}</strong><p style={{ color: "#42615e", lineHeight: 1.55, margin: ".35rem 0 .7rem" }}>{pending > 0 ? "Start with the oldest submissions, use AI for a draft comment, then edit before publishing." : "Recent results suggest a short retrieval sheet on sacrificing ratio would reinforce learning."}</p><Link href={pending > 0 ? "/teacher/review" : "/teacher/ai-tools"} style={{ color: "var(--teal)", fontWeight: 850, display: "inline-flex", gap: ".35rem", alignItems: "center" }}>Open suggested action <ArrowRight size={15}/></Link></div><SafetyNote/></section><section className="card card-pad"><div className="eyebrow">Recent activity</div><h2 className="display" style={{ fontSize: "1.8rem", margin: ".25rem 0 1rem" }}>What changed</h2><div style={{ display: "grid", gap: ".9rem" }}>{activities.map((a)=><div key={a.id} style={{ display: "grid", gridTemplateColumns: "30px 1fr", gap: ".6rem" }}><span style={{ width: 29, height: 29, display: "grid", placeItems: "center", borderRadius: 8, background: "var(--coral-soft)", color: "var(--coral)" }}><CheckCircle2 size={15}/></span><div><strong style={{ display: "block", fontSize: ".83rem" }}>{a.action}</strong><small className="hint">{formatDateTime(a.createdAt)}</small></div></div>)}</div></section></div></div>;
+  const average = results.length
+    ? Math.round(
+        results.reduce(
+          (a, r) =>
+            a + (Number(r.marks) / r.submission.assignment.maxMarks) * 100,
+          0,
+        ) / results.length,
+      )
+    : 0;
+  const saved = Math.round(generations * 18 + results.length * 7);
+  const weakestTopic = topicPerformance(
+    results.map((result) => ({
+      topic: result.submission.assignment.topic,
+      title: result.submission.assignment.title,
+      marks: Number(result.marks),
+      maxMarks: result.submission.assignment.maxMarks,
+    })),
+  )[0];
+  return (
+    <div className="page">
+      <PageHeader
+        eyebrow="Teacher overview"
+        title="Your teaching command centre"
+        description="See what needs attention, pick up where you left off, and keep every class moving."
+        action={
+          <Link className="btn btn-primary" href="/teacher/ai-tools">
+            <Sparkles size={17} /> Create with AI
+          </Link>
+        }
+      />
+      <div className="grid-auto">
+        {" "}
+        <StatCard
+          label="Classes"
+          value={classes}
+          detail="Active teaching spaces"
+          icon={School}
+        />
+        <StatCard
+          label="Students"
+          value={students}
+          detail="Across all classes"
+          icon={Users}
+        />
+        <StatCard
+          label="Active assignments"
+          value={active}
+          detail="Published and open"
+          icon={FileCheck2}
+          tone="coral"
+        />
+        <StatCard
+          label="Unchecked work"
+          value={pending}
+          detail={pending ? "Needs your review" : "You’re all caught up"}
+          icon={Clock3}
+          tone="gold"
+        />
+        <StatCard
+          label="Average score"
+          value={results.length ? `${average}%` : "—"}
+          detail="Published results"
+          icon={GraduationCap}
+        />
+        <StatCard
+          label="Announcements"
+          value={announcements}
+          detail="Sent to classes"
+          icon={Megaphone}
+        />
+        <StatCard
+          label="AI materials"
+          value={generations}
+          detail="Generated suggestions"
+          icon={Bot}
+          tone="coral"
+        />
+        <StatCard
+          label="Workload saved"
+          value={`${saved}m`}
+          detail="Estimated assistance time"
+          icon={Clock3}
+          tone="gold"
+        />
+      </div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "minmax(0,1.5fr) minmax(280px,.8fr)",
+          gap: "1rem",
+          marginTop: "1rem",
+        }}
+      >
+        <section className="card card-pad">
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <div className="eyebrow">AI recommendations</div>
+              <h2
+                className="display"
+                style={{ fontSize: "1.8rem", margin: ".25rem 0 1rem" }}
+              >
+                A useful next move
+              </h2>
+            </div>
+            <Sparkles color="var(--coral)" />
+          </div>
+          <div
+            style={{
+              padding: "1rem",
+              background: "var(--teal-soft)",
+              borderRadius: 12,
+              marginBottom: ".7rem",
+            }}
+          >
+            <strong>
+              {pending > 0
+                ? `Review ${pending} submitted response${pending > 1 ? "s" : ""}`
+                : weakestTopic
+                  ? `Revisit ${weakestTopic.topic}`
+                  : "Create the next learning activity"}
+            </strong>
+            <p
+              style={{
+                color: "#42615e",
+                lineHeight: 1.55,
+                margin: ".35rem 0 .7rem",
+              }}
+            >
+              {pending > 0
+                ? "Start with the oldest submissions, use AI for a draft comment, then edit before publishing."
+                : weakestTopic
+                  ? `Published results currently average ${weakestTopic.average}% for this topic across ${weakestTopic.evidenceCount} result${weakestTopic.evidenceCount === 1 ? "" : "s"}. Verify the need using classroom evidence before acting.`
+                  : "There is not enough result evidence for a topic recommendation yet. Create a lesson resource, assignment, or quiz for your next objective."}
+            </p>
+            <Link
+              href={pending > 0 ? "/teacher/review" : "/teacher/ai-tools"}
+              style={{
+                color: "var(--teal)",
+                fontWeight: 850,
+                display: "inline-flex",
+                gap: ".35rem",
+                alignItems: "center",
+              }}
+            >
+              Open suggested action <ArrowRight size={15} />
+            </Link>
+          </div>
+          <SafetyNote />
+        </section>
+        <section className="card card-pad">
+          <div className="eyebrow">Recent activity</div>
+          <h2
+            className="display"
+            style={{ fontSize: "1.8rem", margin: ".25rem 0 1rem" }}
+          >
+            What changed
+          </h2>
+          <div style={{ display: "grid", gap: ".9rem" }}>
+            {activities.length ? (
+              activities.map((a) => (
+                <div
+                  key={a.id}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "30px 1fr",
+                    gap: ".6rem",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 29,
+                      height: 29,
+                      display: "grid",
+                      placeItems: "center",
+                      borderRadius: 8,
+                      background: "var(--coral-soft)",
+                      color: "var(--coral)",
+                    }}
+                  >
+                    <CheckCircle2 size={15} />
+                  </span>
+                  <div>
+                    <strong style={{ display: "block", fontSize: ".83rem" }}>
+                      {a.action}
+                    </strong>
+                    <small className="hint">
+                      {formatDateTime(a.createdAt)}
+                    </small>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="hint">
+                Your recent account activity will appear here.
+              </p>
+            )}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
 }

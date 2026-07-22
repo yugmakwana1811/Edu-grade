@@ -1,5 +1,290 @@
-import { AlertTriangle, BarChart3, CheckCircle2, Clock3, Medal, TrendingUp, Users } from "lucide-react";
+import {
+  AlertTriangle,
+  BarChart3,
+  CheckCircle2,
+  Clock3,
+  Medal,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { topicPerformance } from "@/lib/analytics";
 import { PageHeader, StatCard } from "@/components/ui";
-export default async function TeacherAnalytics(){const user=await requireUser("TEACHER");const tid=user.teacherProfile!.id;const [assignments,submissions,attendance,quizAttempts,generations]=await Promise.all([db.assignment.findMany({where:{class:{teacherId:tid}},include:{_count:{select:{submissions:true}},class:{include:{_count:{select:{enrollments:true}}}}}}),db.submission.findMany({where:{assignment:{class:{teacherId:tid}}},include:{result:true,assignment:true,student:{include:{user:true}}}}),db.attendanceRecord.findMany({where:{class:{teacherId:tid}}}),db.quizAttempt.findMany({where:{quiz:{class:{teacherId:tid}}},include:{quiz:{include:{questions:true}}}}),db.aIContentGeneration.count({where:{userId:user.id}})]);const scored=submissions.filter(s=>s.result?.published);const percentages=scored.map(s=>Number(s.result!.marks)/s.assignment.maxMarks*100);const avg=percentages.length?Math.round(percentages.reduce((a,b)=>a+b,0)/percentages.length):0;const completion=assignments.reduce((a,x)=>a+x._count.submissions,0);const possible=assignments.reduce((a,x)=>a+x.class._count.enrollments,0);const rate=possible?Math.round(completion/possible*100):0;const present=attendance.filter(a=>a.status==="PRESENT").length;const attendanceRate=attendance.length?Math.round(present/attendance.length*100):0;const students=[...new Set(submissions.filter(s=>s.result&&Number(s.result.marks)/s.assignment.maxMarks<.6).map(s=>s.student.user.name))];return <div className="page"><PageHeader eyebrow="Teacher analytics" title="Signals for your next teaching move" description="Use these patterns to support professional judgment. Small samples and AI-derived insights should be checked against classroom evidence."/><div className="grid-auto"><StatCard label="Class average" value={`${avg}%`} detail="Published results" icon={TrendingUp}/><StatCard label="Completion rate" value={`${rate}%`} detail={`${completion} submitted of ${possible} expected`} icon={CheckCircle2}/><StatCard label="Pending submissions" value={submissions.filter(s=>s.status==="SUBMITTED").length} icon={Clock3} tone="coral"/><StatCard label="Checked submissions" value={submissions.filter(s=>["REVIEWED","PUBLISHED"].includes(s.status)).length} icon={CheckCircle2}/><StatCard label="Highest score" value={`${percentages.length?Math.round(Math.max(...percentages)):0}%`} icon={Medal} tone="gold"/><StatCard label="Lowest score" value={`${percentages.length?Math.round(Math.min(...percentages)):0}%`} icon={BarChart3} tone="coral"/><StatCard label="Attendance" value={`${attendanceRate}%`} detail={`${present} present records`} icon={Users}/><StatCard label="Workload saved" value={`${Math.round(generations*18+scored.length*7)}m`} detail="Estimate, not measured time" icon={Clock3} tone="gold"/></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"1rem",marginTop:"1rem"}}><section className="card card-pad"><div className="eyebrow">Topic insight</div><h2 className="display" style={{fontSize:"1.8rem",margin:".3rem 0 1rem"}}>Concepts to revisit</h2>{[...["Goodwill adjustment","Sacrificing ratio","Interest on drawings"]].map((topic,i)=><div key={topic} style={{marginBottom:"1rem"}}><div style={{display:"flex",justifyContent:"space-between",fontSize:".83rem",fontWeight:750,marginBottom:".35rem"}}><span>{topic}</span><span>{[58,64,72][i]}% confidence</span></div><div className="progress"><span style={{width:`${[58,64,72][i]}%`,background:i===0?"var(--coral)":"var(--teal)"}}/></div></div>)}<p className="hint">Demo topic insight combines seeded assessment patterns. In production, require sufficient evidence before acting.</p></section><section className="card card-pad"><div className="eyebrow">Learner attention</div><h2 className="display" style={{fontSize:"1.8rem",margin:".3rem 0 1rem"}}>Students to check in with</h2>{students.length?students.map(name=><div key={name} style={{display:"flex",gap:".7rem",alignItems:"center",padding:".8rem",background:"var(--coral-soft)",borderRadius:10}}><AlertTriangle size={18} color="var(--coral)"/><div><strong>{name}</strong><div className="hint">Recent score below 60%; review work and classroom context.</div></div></div>):<div style={{padding:"1rem",background:"var(--teal-soft)",borderRadius:10}}><strong>No automatic flags</strong><p className="hint">Continue using classroom observation alongside assessment data.</p></div>}<h3 style={{marginTop:"1.5rem"}}>Quiz performance</h3><p className="hint">{quizAttempts.length?`${quizAttempts.length} attempts recorded across published quizzes.`:"No quiz attempts yet; share a published quiz for a quick concept check."}</p></section></div></div>}
+
+export default async function TeacherAnalytics() {
+  const user = await requireUser("TEACHER");
+  const teacherId = user.teacherProfile!.id;
+  const [assignments, submissions, attendance, quizAttempts, generations] =
+    await Promise.all([
+      db.assignment.findMany({
+        where: { class: { teacherId } },
+        include: {
+          _count: { select: { submissions: true } },
+          class: { include: { _count: { select: { enrollments: true } } } },
+        },
+      }),
+      db.submission.findMany({
+        where: { assignment: { class: { teacherId } } },
+        include: {
+          result: true,
+          assignment: true,
+          student: { include: { user: true } },
+        },
+      }),
+      db.attendanceRecord.findMany({ where: { class: { teacherId } } }),
+      db.quizAttempt.findMany({
+        where: { quiz: { class: { teacherId } } },
+        include: { quiz: { include: { questions: true } } },
+      }),
+      db.aIContentGeneration.count({ where: { userId: user.id } }),
+    ]);
+  const scored = submissions.filter(
+    (submission) => submission.result?.published,
+  );
+  const percentages = scored.map(
+    (submission) =>
+      (Number(submission.result!.marks) / submission.assignment.maxMarks) * 100,
+  );
+  const average = percentages.length
+    ? Math.round(
+        percentages.reduce((sum, score) => sum + score, 0) / percentages.length,
+      )
+    : 0;
+  const completed = assignments.reduce(
+    (sum, assignment) => sum + assignment._count.submissions,
+    0,
+  );
+  const expected = assignments.reduce(
+    (sum, assignment) => sum + assignment.class._count.enrollments,
+    0,
+  );
+  const completionRate = expected
+    ? Math.round((completed / expected) * 100)
+    : 0;
+  const present = attendance.filter(
+    (record) => record.status === "PRESENT",
+  ).length;
+  const attendanceRate = attendance.length
+    ? Math.round((present / attendance.length) * 100)
+    : 0;
+  const studentsNeedingAttention = [
+    ...new Set(
+      scored
+        .filter(
+          (submission) =>
+            Number(submission.result!.marks) / submission.assignment.maxMarks <
+            0.6,
+        )
+        .map((submission) => submission.student.user.name),
+    ),
+  ];
+  const topics = topicPerformance(
+    scored.map((submission) => ({
+      topic: submission.assignment.topic,
+      title: submission.assignment.title,
+      marks: Number(submission.result!.marks),
+      maxMarks: submission.assignment.maxMarks,
+    })),
+  );
+  const quizMaximum = quizAttempts.reduce(
+    (sum, attempt) =>
+      sum +
+      attempt.quiz.questions.reduce(
+        (inner, question) => inner + question.marks,
+        0,
+      ),
+    0,
+  );
+  const quizScore = quizAttempts.reduce(
+    (sum, attempt) => sum + Number(attempt.score),
+    0,
+  );
+  const quizAccuracy = quizMaximum
+    ? Math.round((quizScore / quizMaximum) * 100)
+    : 0;
+  return (
+    <div className="page">
+      <PageHeader
+        eyebrow="Teacher analytics"
+        title="Signals for your next teaching move"
+        description="These patterns use current classroom records. Use them to support professional judgment, and check small samples against classroom evidence."
+      />
+      <div className="grid-auto">
+        <StatCard
+          label="Class average"
+          value={percentages.length ? `${average}%` : "—"}
+          detail="Published results"
+          icon={TrendingUp}
+        />
+        <StatCard
+          label="Completion rate"
+          value={`${completionRate}%`}
+          detail={`${completed} submitted of ${expected} expected`}
+          icon={CheckCircle2}
+        />
+        <StatCard
+          label="Pending submissions"
+          value={
+            submissions.filter(
+              (submission) => submission.status === "SUBMITTED",
+            ).length
+          }
+          icon={Clock3}
+          tone="coral"
+        />
+        <StatCard
+          label="Checked submissions"
+          value={
+            submissions.filter((submission) =>
+              ["REVIEWED", "PUBLISHED"].includes(submission.status),
+            ).length
+          }
+          icon={CheckCircle2}
+        />
+        <StatCard
+          label="Highest score"
+          value={
+            percentages.length
+              ? `${Math.round(Math.max(...percentages))}%`
+              : "—"
+          }
+          icon={Medal}
+          tone="gold"
+        />
+        <StatCard
+          label="Lowest score"
+          value={
+            percentages.length
+              ? `${Math.round(Math.min(...percentages))}%`
+              : "—"
+          }
+          icon={BarChart3}
+          tone="coral"
+        />
+        <StatCard
+          label="Attendance"
+          value={attendance.length ? `${attendanceRate}%` : "—"}
+          detail={`${present} present records`}
+          icon={Users}
+        />
+        <StatCard
+          label="Workload saved"
+          value={`${Math.round(generations * 18 + scored.length * 7)}m`}
+          detail="Estimate, not measured time"
+          icon={Clock3}
+          tone="gold"
+        />
+      </div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "1rem",
+          marginTop: "1rem",
+        }}
+      >
+        <section className="card card-pad">
+          <div className="eyebrow">Topic insight</div>
+          <h2
+            className="display"
+            style={{ fontSize: "1.8rem", margin: ".3rem 0 1rem" }}
+          >
+            Concepts to revisit
+          </h2>
+          {topics.length ? (
+            topics.slice(0, 5).map((topic, index) => (
+              <div key={topic.topic} style={{ marginBottom: "1rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: ".83rem",
+                    fontWeight: 750,
+                    marginBottom: ".35rem",
+                  }}
+                >
+                  <span>{topic.topic}</span>
+                  <span>
+                    {topic.average}% · {topic.evidenceCount} result
+                    {topic.evidenceCount === 1 ? "" : "s"}
+                  </span>
+                </div>
+                <div className="progress">
+                  <span
+                    style={{
+                      width: `${topic.average}%`,
+                      background: index === 0 ? "var(--coral)" : "var(--teal)",
+                    }}
+                  />
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="hint">
+              Topic insights will appear after assessed work has published
+              results.
+            </p>
+          )}
+          <p className="hint">
+            Topics with fewer results are weaker evidence; combine these signals
+            with observation and learner work.
+          </p>
+        </section>
+        <section className="card card-pad">
+          <div className="eyebrow">Learner attention</div>
+          <h2
+            className="display"
+            style={{ fontSize: "1.8rem", margin: ".3rem 0 1rem" }}
+          >
+            Students to check in with
+          </h2>
+          {studentsNeedingAttention.length ? (
+            studentsNeedingAttention.map((name) => (
+              <div
+                key={name}
+                style={{
+                  display: "flex",
+                  gap: ".7rem",
+                  alignItems: "center",
+                  padding: ".8rem",
+                  background: "var(--coral-soft)",
+                  borderRadius: 10,
+                  marginBottom: ".5rem",
+                }}
+              >
+                <AlertTriangle size={18} color="var(--coral)" />
+                <div>
+                  <strong>{name}</strong>
+                  <div className="hint">
+                    A published score is below 60%; review the work and
+                    classroom context.
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div
+              style={{
+                padding: "1rem",
+                background: "var(--teal-soft)",
+                borderRadius: 10,
+              }}
+            >
+              <strong>No score-based flags</strong>
+              <p className="hint">
+                Continue using classroom observation alongside assessment data.
+              </p>
+            </div>
+          )}
+          <h3 style={{ marginTop: "1.5rem" }}>Quiz performance</h3>
+          <p className="hint">
+            {quizAttempts.length
+              ? `${quizAttempts.length} attempts recorded · ${quizAccuracy}% overall accuracy.`
+              : "No quiz attempts yet; publish a quiz for a quick concept check."}
+          </p>
+        </section>
+      </div>
+    </div>
+  );
+}

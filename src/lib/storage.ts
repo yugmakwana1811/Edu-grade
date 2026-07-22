@@ -1,5 +1,5 @@
 import "server-only";
-import { head, put } from "@vercel/blob";
+import { del, head, put } from "@vercel/blob";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
@@ -71,4 +71,11 @@ export async function storeFile(file: File, folder: string) {
     Buffer.from(await file.arrayBuffer()),
   );
   return `/uploads/${folder}/${path.basename(filename)}`;
+}
+
+export async function deleteStoredFile(url: string) {
+  if (!url.startsWith("https://")) return;
+  if (!process.env.BLOB_READ_WRITE_TOKEN)
+    throw new Error("File storage is not configured.");
+  await del(url, { token: process.env.BLOB_READ_WRITE_TOKEN });
 }

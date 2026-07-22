@@ -1,20 +1,28 @@
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, Download, Eye, Send } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Download,
+  Eye,
+  Lock,
+  Pencil,
+  Send,
+} from "lucide-react";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Alert, EmptyState, PageHeader } from "@/components/ui";
 import { formatDateTime } from "@/lib/utils";
-import { publishAssignmentAction } from "@/app/actions";
+import { closeAssignmentAction, publishAssignmentAction } from "@/app/actions";
 import { SubmitButton } from "@/components/submit-button";
 export default async function AssignmentDetail({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ success?: string }>;
+  searchParams: Promise<{ error?: string; success?: string }>;
 }) {
-  const [{ id }, { success }, user] = await Promise.all([
+  const [{ id }, { error, success }, user] = await Promise.all([
     params,
     searchParams,
     requireUser("TEACHER"),
@@ -55,13 +63,32 @@ export default async function AssignmentDetail({
         description={a.description}
         action={
           a.status === "DRAFT" ? (
-            <form action={publishAssignmentAction}>
+            <div style={{ display: "flex", gap: ".6rem", flexWrap: "wrap" }}>
+              <Link
+                className="btn btn-secondary"
+                href={`/teacher/assignments/${a.id}/edit`}
+              >
+                <Pencil size={15} /> Edit draft
+              </Link>
+              <form action={publishAssignmentAction}>
+                <input type="hidden" name="id" value={a.id} />
+                <SubmitButton
+                  pendingText="Publishing…"
+                  confirmMessage="Publish this assignment now? Enrolled students will immediately see the instructions, deadline, and attached paper."
+                >
+                  <Send size={16} /> Publish to students
+                </SubmitButton>
+              </form>
+            </div>
+          ) : a.status === "PUBLISHED" ? (
+            <form action={closeAssignmentAction}>
               <input type="hidden" name="id" value={a.id} />
               <SubmitButton
-                pendingText="Publishing…"
-                confirmMessage="Publish this assignment now? Enrolled students will immediately see the instructions, deadline, and attached paper."
+                className="btn btn-secondary"
+                pendingText="Closing…"
+                confirmMessage="Close this assignment? Students who have not submitted will no longer be able to upload work."
               >
-                <Send size={16} /> Publish to students
+                <Lock size={15} /> Close submissions
               </SubmitButton>
             </form>
           ) : (
@@ -71,7 +98,7 @@ export default async function AssignmentDetail({
           )
         }
       />
-      <Alert success={success} />
+      <Alert error={error} success={success} />
       <div
         style={{
           display: "grid",
@@ -153,6 +180,8 @@ export default async function AssignmentDetail({
           >
             <dt className="hint">Maximum marks</dt>
             <dd style={{ margin: 0, fontWeight: 800 }}>{a.maxMarks}</dd>
+            <dt className="hint">Topic</dt>
+            <dd style={{ margin: 0, fontWeight: 800 }}>{a.topic ?? a.title}</dd>
             <dt className="hint">Deadline</dt>
             <dd style={{ margin: 0, fontWeight: 800 }}>
               {formatDateTime(a.dueAt)}

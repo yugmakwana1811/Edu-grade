@@ -1,9 +1,9 @@
-import { Download, FileText, UploadCloud } from "lucide-react";
+import { Download, FileText, Trash2, UploadCloud } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Alert, EmptyState, PageHeader } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
-import { uploadResourceAction } from "@/app/actions";
+import { deleteResourceAction, uploadResourceAction } from "@/app/actions";
 import { formatDate } from "@/lib/utils";
 export default async function Resources({
   searchParams,
@@ -77,16 +77,29 @@ export default async function Resources({
                       </p>
                     )}
                   </div>
-                  <a
-                    href={`/api/files/resource/${r.id}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="btn btn-secondary"
-                    aria-label={`Download ${r.title}`}
-                  >
-                    <Download size={16} />
-                    <span className="hide-mobile">Open</span>
-                  </a>
+                  <div style={{ display: "flex", gap: ".45rem" }}>
+                    <a
+                      href={`/api/files/resource/${r.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="btn btn-secondary"
+                      aria-label={`Download ${r.title}`}
+                    >
+                      <Download size={16} />
+                      <span className="hide-mobile">Open</span>
+                    </a>
+                    <form action={deleteResourceAction}>
+                      <input type="hidden" name="id" value={r.id} />
+                      <SubmitButton
+                        className="btn btn-danger"
+                        pendingText="Deleting…"
+                        confirmMessage={`Permanently delete “${r.title}” for every learner in ${r.class.name}?`}
+                      >
+                        <Trash2 size={15} />
+                        <span className="hide-mobile">Delete</span>
+                      </SubmitButton>
+                    </form>
+                  </div>
                 </div>
               ))}
             </div>

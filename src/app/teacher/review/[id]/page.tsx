@@ -85,7 +85,11 @@ export default async function ReviewDetail({
                 key={p.id}
                 style={{ padding: ".6rem", margin: 0 }}
               >
-                <a href={`/api/submission-pages/${p.id}`} target="_blank" rel="noreferrer">
+                <a
+                  href={`/api/submission-pages/${p.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   <img
                     src={`/api/submission-pages/${p.id}`}
                     alt={`Handwritten answer page ${p.pageNumber}`}

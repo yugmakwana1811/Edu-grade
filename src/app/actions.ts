@@ -21,8 +21,22 @@ import {
   uploadedPagesSchema,
 } from "@/lib/validation";
 import { generateAI } from "@/lib/ai";
-import { storeFile, validateFile, verifyPrivateUpload } from "@/lib/storage";
+import {
+  deleteStoredFile,
+  storeFile,
+  validateFile,
+  verifyPrivateUpload,
+} from "@/lib/storage";
 import type { AIContentType } from "@prisma/client";
+import {
+  assertAuthAllowed,
+  authThrottleKey,
+  clearAuthFailures,
+  recordAuthFailure,
+} from "@/lib/auth-throttle";
+
+const DUMMY_PASSWORD_HASH =
+  "$2b$12$2gwD2filJ2VA7OTnAXsmYeuBOMe30gvzLn2EKcRFC34OEEzD75EoC";
 
 function text(form: FormData, key: string) {
   return String(form.get(key) ?? "");
@@ -36,6 +50,18 @@ function messageOf(error: unknown) {
     : "Something went wrong. Please try again.";
 }
 
+async function uniqueClassCode() {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  do {
+    code = Array.from(
+      { length: 6 },
+      () => alphabet[Math.floor(Math.random() * alphabet.length)],
+    ).join("");
+  } while (await db.classRoom.findUnique({ where: { code } }));
+  return code;
+}
+
 export async function loginAction(form: FormData) {
   const result = loginSchema.safeParse({
     email: text(form, "email"),
@@ -44,16 +70,24 @@ export async function loginAction(form: FormData) {
   if (!result.success)
     fail("/login", result.error.issues[0]?.message ?? "Check your details.");
   let user;
+  const throttleKey = await authThrottleKey("login", result.data.email);
   try {
+    await assertAuthAllowed(throttleKey);
     user = await db.user.findUnique({ where: { email: result.data.email } });
-    if (
-      !user ||
-      !(await bcrypt.compare(result.data.password, user.passwordHash))
-    )
+    const passwordMatches = await bcrypt.compare(
+      result.data.password,
+      user?.passwordHash ?? DUMMY_PASSWORD_HASH,
+    );
+    if (!user || !passwordMatches) {
+      await recordAuthFailure(throttleKey);
       fail("/login", "Email or password is incorrect.");
+    }
+    await clearAuthFailures(throttleKey);
     await createSession(user.id);
   } catch (error) {
     if (error && typeof error === "object" && "digest" in error) throw error;
+    if (error instanceof Error && error.message.startsWith("Too many attempts"))
+      fail("/login", error.message);
     console.error(
       "[EduGrade] Login service failure",
       error instanceof Error ? error.message : "Unknown error",
@@ -94,14 +128,7 @@ export async function createClassAction(form: FormData) {
       "/teacher/classes",
       parsed.error.issues[0]?.message ?? "Check the class details.",
     );
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "";
-  do {
-    code = Array.from(
-      { length: 6 },
-      () => alphabet[Math.floor(Math.random() * alphabet.length)],
-    ).join("");
-  } while (await db.classRoom.findUnique({ where: { code } }));
+  const code = await uniqueClassCode();
   const classroom = await db.classRoom.create({
     data: { ...parsed.data, code, teacherId: user.teacherProfile!.id },
   });
@@ -114,6 +141,89 @@ export async function createClassAction(form: FormData) {
     },
   });
   redirect(`/teacher/classes/${classroom.id}?success=Class created`);
+}
+
+export async function updateClassAction(form: FormData) {
+  const user = await requireUser("TEACHER");
+  const id = text(form, "id");
+  const parsed = classSchema.safeParse({
+    name: text(form, "name"),
+    subject: text(form, "subject"),
+    grade: text(form, "grade"),
+    description: text(form, "description"),
+  });
+  if (!parsed.success)
+    fail(
+      `/teacher/classes/${id}`,
+      parsed.error.issues[0]?.message ?? "Check the class details.",
+    );
+  const classroom = await db.classRoom.findFirst({
+    where: { id, teacherId: user.teacherProfile!.id },
+    select: { id: true },
+  });
+  if (!classroom) fail("/teacher/classes", "Class not found.");
+  await db.$transaction([
+    db.classRoom.update({ where: { id }, data: parsed.data }),
+    db.activityLog.create({
+      data: {
+        userId: user.id,
+        action: "Updated class",
+        entityType: "ClassRoom",
+        entityId: id,
+      },
+    }),
+  ]);
+  redirect(`/teacher/classes/${id}?success=Class updated`);
+}
+
+export async function regenerateClassCodeAction(form: FormData) {
+  const user = await requireUser("TEACHER");
+  const id = text(form, "id");
+  const classroom = await db.classRoom.findFirst({
+    where: { id, teacherId: user.teacherProfile!.id },
+    select: { id: true },
+  });
+  if (!classroom) fail("/teacher/classes", "Class not found.");
+  const code = await uniqueClassCode();
+  await db.$transaction([
+    db.classRoom.update({ where: { id }, data: { code } }),
+    db.activityLog.create({
+      data: {
+        userId: user.id,
+        action: "Regenerated class code",
+        entityType: "ClassRoom",
+        entityId: id,
+      },
+    }),
+  ]);
+  redirect(`/teacher/classes/${id}?success=New class code generated`);
+}
+
+export async function removeEnrollmentAction(form: FormData) {
+  const user = await requireUser("TEACHER");
+  const classId = text(form, "classId");
+  const enrollmentId = text(form, "enrollmentId");
+  const enrollment = await db.classEnrollment.findFirst({
+    where: {
+      id: enrollmentId,
+      classId,
+      class: { teacherId: user.teacherProfile!.id },
+    },
+    select: { id: true },
+  });
+  if (!enrollment) fail(`/teacher/classes/${classId}`, "Enrollment not found.");
+  await db.$transaction([
+    db.classEnrollment.delete({ where: { id: enrollment.id } }),
+    db.activityLog.create({
+      data: {
+        userId: user.id,
+        action: "Removed student from class",
+        entityType: "ClassEnrollment",
+        entityId: enrollment.id,
+      },
+    }),
+  ]);
+  redirect(`/teacher/classes/${classId}?success=Student removed from class`);
 }
 
 export async function joinClassAction(form: FormData) {
@@ -157,6 +267,7 @@ export async function createAssignmentAction(form: FormData) {
     title: text(form, "title"),
     description: text(form, "description"),
     instructions: text(form, "instructions"),
+    topic: text(form, "topic"),
     type: text(form, "type"),
     maxMarks: text(form, "maxMarks"),
     dueAt: text(form, "dueAt"),
@@ -181,6 +292,7 @@ export async function createAssignmentAction(form: FormData) {
         title: parsed.data.title,
         description: parsed.data.description,
         instructions: parsed.data.instructions,
+        topic: parsed.data.topic,
         type: parsed.data.type,
         maxMarks: parsed.data.maxMarks,
         dueAt: parsed.data.dueAt,
@@ -234,6 +346,103 @@ export async function publishAssignmentAction(form: FormData) {
     );
   await db.assignment.update({ where: { id }, data: { status: "PUBLISHED" } });
   redirect(`/teacher/assignments/${id}?success=Assignment published`);
+}
+
+export async function updateAssignmentAction(form: FormData) {
+  const user = await requireUser("TEACHER");
+  const id = text(form, "id");
+  const parsed = assignmentSchema.safeParse({
+    classId: text(form, "classId"),
+    title: text(form, "title"),
+    description: text(form, "description"),
+    instructions: text(form, "instructions"),
+    topic: text(form, "topic"),
+    type: text(form, "type"),
+    maxMarks: text(form, "maxMarks"),
+    dueAt: text(form, "dueAt"),
+    publish: false,
+  });
+  if (!parsed.success)
+    fail(
+      `/teacher/assignments/${id}/edit`,
+      parsed.error.issues[0]?.message ?? "Check the assignment details.",
+    );
+  const assignment = await db.assignment.findFirst({
+    where: {
+      id,
+      status: "DRAFT",
+      class: { teacherId: user.teacherProfile!.id },
+    },
+    select: { id: true },
+  });
+  if (!assignment)
+    fail(
+      `/teacher/assignments/${id}`,
+      "Only a draft assignment can be edited.",
+    );
+  const targetClass = await db.classRoom.findFirst({
+    where: { id: parsed.data.classId, teacherId: user.teacherProfile!.id },
+    select: { id: true },
+  });
+  if (!targetClass)
+    fail(
+      `/teacher/assignments/${id}/edit`,
+      "You cannot move work to that class.",
+    );
+  await db.$transaction([
+    db.assignment.update({
+      where: { id },
+      data: {
+        classId: parsed.data.classId,
+        title: parsed.data.title,
+        description: parsed.data.description,
+        instructions: parsed.data.instructions,
+        topic: parsed.data.topic,
+        type: parsed.data.type,
+        maxMarks: parsed.data.maxMarks,
+        dueAt: parsed.data.dueAt,
+      },
+    }),
+    db.activityLog.create({
+      data: {
+        userId: user.id,
+        action: "Updated assignment draft",
+        entityType: "Assignment",
+        entityId: id,
+      },
+    }),
+  ]);
+  redirect(`/teacher/assignments/${id}?success=Assignment updated`);
+}
+
+export async function closeAssignmentAction(form: FormData) {
+  const user = await requireUser("TEACHER");
+  const id = text(form, "id");
+  const assignment = await db.assignment.findFirst({
+    where: {
+      id,
+      status: "PUBLISHED",
+      class: { teacherId: user.teacherProfile!.id },
+    },
+    select: { id: true },
+  });
+  if (!assignment)
+    fail(
+      `/teacher/assignments/${id}`,
+      "Only an open assignment can be closed.",
+    );
+  await db.$transaction([
+    db.assignment.update({ where: { id }, data: { status: "CLOSED" } }),
+    db.activityLog.create({
+      data: {
+        userId: user.id,
+        action: "Closed assignment",
+        entityType: "Assignment",
+        entityId: id,
+      },
+    }),
+  ]);
+  redirect(`/teacher/assignments/${id}?success=Assignment closed`);
 }
 
 export async function generateContentAction(form: FormData) {
@@ -328,6 +537,28 @@ export async function createAnnouncementAction(form: FormData) {
   redirect("/teacher/announcements?success=Announcement sent");
 }
 
+export async function deleteAnnouncementAction(form: FormData) {
+  const user = await requireUser("TEACHER");
+  const id = text(form, "id");
+  const announcement = await db.announcement.findFirst({
+    where: { id, class: { teacherId: user.teacherProfile!.id } },
+    select: { id: true },
+  });
+  if (!announcement) fail("/teacher/announcements", "Announcement not found.");
+  await db.$transaction([
+    db.announcement.delete({ where: { id } }),
+    db.activityLog.create({
+      data: {
+        userId: user.id,
+        action: "Deleted announcement",
+        entityType: "Announcement",
+        entityId: id,
+      },
+    }),
+  ]);
+  redirect("/teacher/announcements?success=Announcement deleted");
+}
+
 export async function uploadResourceAction(form: FormData) {
   const user = await requireUser("TEACHER");
   const parsed = resourceSchema.safeParse({
@@ -360,6 +591,33 @@ export async function uploadResourceAction(form: FormData) {
   redirect("/teacher/resources?success=Resource uploaded");
 }
 
+export async function deleteResourceAction(form: FormData) {
+  const user = await requireUser("TEACHER");
+  const id = text(form, "id");
+  const resource = await db.resource.findFirst({
+    where: { id, class: { teacherId: user.teacherProfile!.id } },
+    select: { id: true, url: true },
+  });
+  if (!resource) fail("/teacher/resources", "Resource not found.");
+  try {
+    await deleteStoredFile(resource.url);
+    await db.$transaction([
+      db.resource.delete({ where: { id } }),
+      db.activityLog.create({
+        data: {
+          userId: user.id,
+          action: "Deleted resource",
+          entityType: "Resource",
+          entityId: id,
+        },
+      }),
+    ]);
+  } catch (error) {
+    fail("/teacher/resources", messageOf(error));
+  }
+  redirect("/teacher/resources?success=Resource deleted");
+}
+
 export async function submitWorkAction(form: FormData) {
   const user = await requireUser("STUDENT");
   const assignmentId = text(form, "assignmentId");
@@ -387,10 +645,7 @@ export async function submitWorkAction(form: FormData) {
   });
   if (!assignment)
     return { ok: false as const, error: "Assignment not found." };
-  if (
-    assignment.submissions[0] &&
-    assignment.submissions[0].status !== "DRAFT"
-  )
+  if (assignment.submissions[0] && assignment.submissions[0].status !== "DRAFT")
     return {
       ok: false as const,
       error:

@@ -20,7 +20,12 @@ const hash = (token: string) =>
 export async function createSession(userId: string) {
   const token = randomBytes(32).toString("base64url");
   const expiresAt = new Date(Date.now() + SESSION_DAYS * 86400000);
-  await db.session.create({ data: { userId, tokenHash: hash(token), expiresAt } });
+  await db.$transaction([
+    db.session.deleteMany({ where: { expiresAt: { lt: new Date() } } }),
+    db.session.create({
+      data: { userId, tokenHash: hash(token), expiresAt },
+    }),
+  ]);
   (await cookies()).set(COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
