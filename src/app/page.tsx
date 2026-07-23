@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { DiaTextReveal } from "@/components/dia-text-reveal";
 import { FloatingTooltip } from "@/components/floating-tooltip";
+import { FeatureAtlas } from "@/components/feature-atlas";
 import { HoverExpand } from "@/components/hover-expand";
 import { Logo } from "@/components/logo";
 import { MotionAccordion } from "@/components/motion-accordion";
@@ -218,6 +219,25 @@ export default function Home() {
           </div>
         ))}
       </div>
+
+      <section className="marketing-section feature-atlas-section" id="features">
+        <div className="section-inner">
+          <div className="feature-atlas-intro">
+            <div>
+              <div className="eyebrow">The complete EduGrade platform</div>
+              <h2 className="display section-heading">
+                Every feature, connected to the work around it.
+              </h2>
+            </div>
+            <p>
+              Explore the complete teacher, student, AI, and platform
+              foundation—from secure access and planning to published results
+              and progress intelligence.
+            </p>
+          </div>
+          <FeatureAtlas />
+        </div>
+      </section>
 
       <section className="marketing-section" id="platform">
         <div className="section-inner">

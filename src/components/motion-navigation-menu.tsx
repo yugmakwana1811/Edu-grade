@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   BarChart3,
   Bot,
+  Boxes,
   Camera,
   ChevronDown,
   GraduationCap,
@@ -16,6 +17,12 @@ const menus = [
     id: "platform-menu",
     label: "Platform",
     items: [
+      {
+        href: "#features",
+        label: "Complete feature atlas",
+        description: "See every teacher, student, AI, and platform capability.",
+        icon: Boxes,
+      },
       {
         href: "#ai-studio",
         label: "AI teaching studio",

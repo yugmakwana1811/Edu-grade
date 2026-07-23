@@ -19,6 +19,7 @@ import {
 import { Logo } from "./logo";
 import { AppNavLink } from "./app-nav-link";
 import { FloatingTooltip } from "./floating-tooltip";
+import { MotionPageTransition } from "./motion-page-transition";
 import { logoutAction } from "@/app/actions";
 import { initials } from "@/lib/utils";
 import type { Role } from "@prisma/client";
@@ -170,7 +171,7 @@ export function AppShell({
             </Link>
           </div>
         </header>
-        {children}
+        <MotionPageTransition>{children}</MotionPageTransition>
       </main>
       <nav className="mobile-nav">
         {mobile.map(({ href, label, icon: Icon }) => (
