@@ -58,12 +58,12 @@ export function StatCard({
   tone?: "teal" | "coral" | "gold";
 }) {
   const colors = {
-    teal: ["#e4f4f1", "#087f7b"],
-    coral: ["#fff0ec", "#f36f56"],
-    gold: ["#fff7e3", "#b97900"],
+    teal: ["#e7f6f3", "#0d766e"],
+    coral: ["#eeefff", "#5557d9"],
+    gold: ["#fff7e6", "#a76f14"],
   }[tone];
   return (
-    <div className="card stat">
+    <article className="card stat">
       <div
         style={{ display: "flex", justifyContent: "space-between", gap: 12 }}
       >
@@ -94,7 +94,7 @@ export function StatCard({
           </div>
         )}
       </div>
-    </div>
+    </article>
   );
 }
 export function Alert({
@@ -163,10 +163,12 @@ export function SafetyNote({ student = false }: { student?: boolean }) {
     <div
       style={{
         padding: "1rem",
+        border: "1px solid #e4d6ad",
         borderLeft: "3px solid var(--gold)",
-        background: "#fffaf0",
+        borderRadius: 10,
+        background: "var(--gold-soft)",
         fontSize: ".82rem",
-        color: "#665021",
+        color: "#65491c",
         lineHeight: 1.55,
       }}
     >

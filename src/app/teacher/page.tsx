@@ -1,15 +1,11 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  Bot,
   CheckCircle2,
   Clock3,
   FileCheck2,
   GraduationCap,
-  Megaphone,
-  School,
   Sparkles,
-  Users,
 } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -96,93 +92,64 @@ export default async function TeacherDashboard() {
           </Link>
         }
       />
-      <div className="grid-auto">
-        {" "}
+      <div className="metric-strip">
         <StatCard
-          label="Classes"
-          value={classes}
-          detail="Active teaching spaces"
-          icon={School}
-        />
-        <StatCard
-          label="Students"
-          value={students}
-          detail="Across all classes"
-          icon={Users}
-        />
-        <StatCard
-          label="Active assignments"
-          value={active}
-          detail="Published and open"
-          icon={FileCheck2}
+          label="Review queue"
+          value={pending}
+          detail={pending ? "Needs your attention" : "You’re all caught up"}
+          icon={Clock3}
           tone="coral"
         />
         <StatCard
-          label="Unchecked work"
-          value={pending}
-          detail={pending ? "Needs your review" : "You’re all caught up"}
-          icon={Clock3}
-          tone="gold"
+          label="Open work"
+          value={active}
+          detail="Published assignments"
+          icon={FileCheck2}
         />
         <StatCard
-          label="Average score"
+          label="Class average"
           value={results.length ? `${average}%` : "—"}
-          detail="Published results"
+          detail={`${results.length} published result${results.length === 1 ? "" : "s"}`}
           icon={GraduationCap}
         />
         <StatCard
-          label="Announcements"
-          value={announcements}
-          detail="Sent to classes"
-          icon={Megaphone}
-        />
-        <StatCard
-          label="AI materials"
-          value={generations}
-          detail="Generated suggestions"
-          icon={Bot}
-          tone="coral"
-        />
-        <StatCard
-          label="Workload saved"
+          label="Time assisted"
           value={`${saved}m`}
-          detail="Estimated assistance time"
+          detail="Estimated workload support"
           icon={Clock3}
           tone="gold"
         />
       </div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0,1.5fr) minmax(280px,.8fr)",
-          gap: "1rem",
-          marginTop: "1rem",
-        }}
-      >
+      <div className="facts-strip" aria-label="Supporting teacher metrics">
+        <div className="fact">
+          <span>Classes</span>
+          <strong>{classes}</strong>
+        </div>
+        <div className="fact">
+          <span>Students</span>
+          <strong>{students}</strong>
+        </div>
+        <div className="fact">
+          <span>Announcements</span>
+          <strong>{announcements}</strong>
+        </div>
+        <div className="fact">
+          <span>AI drafts</span>
+          <strong>{generations}</strong>
+        </div>
+      </div>
+      <div className="dashboard-grid">
         <section className="card card-pad">
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
+          <div className="panel-head">
             <div>
-              <div className="eyebrow">AI recommendations</div>
-              <h2
-                className="display"
-                style={{ fontSize: "1.8rem", margin: ".25rem 0 1rem" }}
-              >
-                A useful next move
-              </h2>
+              <div className="eyebrow">Priority briefing</div>
+              <h2>Your most useful next move</h2>
             </div>
-            <Sparkles color="var(--coral)" />
+            <Sparkles color="var(--indigo)" />
           </div>
           <div
+            className="recommendation-box"
             style={{
-              padding: "1rem",
-              background: "var(--teal-soft)",
-              borderRadius: 12,
               marginBottom: ".7rem",
             }}
           >
@@ -209,7 +176,7 @@ export default async function TeacherDashboard() {
             <Link
               href={pending > 0 ? "/teacher/review" : "/teacher/ai-tools"}
               style={{
-                color: "var(--teal)",
+                color: "var(--indigo)",
                 fontWeight: 850,
                 display: "inline-flex",
                 gap: ".35rem",
@@ -222,35 +189,18 @@ export default async function TeacherDashboard() {
           <SafetyNote />
         </section>
         <section className="card card-pad">
-          <div className="eyebrow">Recent activity</div>
-          <h2
-            className="display"
-            style={{ fontSize: "1.8rem", margin: ".25rem 0 1rem" }}
-          >
-            What changed
-          </h2>
-          <div style={{ display: "grid", gap: ".9rem" }}>
+          <div className="panel-head">
+            <div>
+              <div className="eyebrow">Recent activity</div>
+              <h2>Workspace ledger</h2>
+            </div>
+            <CheckCircle2 color="var(--teal)" />
+          </div>
+          <div className="activity-list">
             {activities.length ? (
               activities.map((a) => (
-                <div
-                  key={a.id}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "30px 1fr",
-                    gap: ".6rem",
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 29,
-                      height: 29,
-                      display: "grid",
-                      placeItems: "center",
-                      borderRadius: 8,
-                      background: "var(--coral-soft)",
-                      color: "var(--coral)",
-                    }}
-                  >
+                <div key={a.id} className="activity-item">
+                  <span className="activity-icon">
                     <CheckCircle2 size={15} />
                   </span>
                   <div>

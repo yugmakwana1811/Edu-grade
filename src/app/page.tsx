@@ -4,8 +4,9 @@ import {
   BarChart3,
   Bot,
   Camera,
+  CheckCircle2,
   ClipboardCheck,
-  Clock3,
+  FileText,
   ShieldCheck,
   Sparkles,
   Users,
@@ -22,194 +23,260 @@ const cycle = [
   "Communicate",
   "Analyse",
 ];
+
 export default function Home() {
   return (
-    <main>
-      <header
-        style={{
-          height: 74,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 clamp(1rem,5vw,5rem)",
-          background: "white",
-          borderBottom: "1px solid var(--line)",
-        }}
-      >
+    <main className="marketing">
+      <header className="marketing-nav">
         <Logo />
-        <nav style={{ display: "flex", gap: ".65rem" }}>
-          <Link className="btn btn-secondary hide-mobile" href="/about">
-            How it works
-          </Link>
-          <Link className="btn btn-primary" href="/login">
-            Sign in <ArrowRight size={17} />
-          </Link>
+        <nav className="marketing-links" aria-label="Product navigation">
+          <a href="#platform">Platform</a>
+          <a href="#roles">For teachers & students</a>
+          <a href="#trust">Trust & AI safety</a>
+          <Link href="/about">About</Link>
         </nav>
+        <div className="marketing-actions">
+          <Link className="btn btn-secondary" href="/login">
+            Sign in
+          </Link>
+          <Link className="btn btn-primary" href="/register">
+            Start free <ArrowRight size={16} />
+          </Link>
+        </div>
       </header>
-      <section
-        className="hero-pattern"
-        style={{
-          minHeight: "78vh",
-          padding: "clamp(4rem,10vw,8rem) clamp(1rem,8vw,8rem)",
-          display: "grid",
-          placeItems: "center",
-          textAlign: "center",
-          backgroundColor: "#f8fbf9",
-        }}
-      >
-        <div style={{ maxWidth: 940 }}>
-          <div className="eyebrow">
-            The full-cycle teacher assistant · Classes 6–12
+
+      <section className="marketing-hero hero-pattern">
+        <div className="hero-copy">
+          <div className="hero-kicker">
+            <Sparkles size={14} /> AI-powered classroom operations · Classes
+            6–12
           </div>
-          <h1
-            className="display"
-            style={{
-              fontSize: "clamp(3.1rem,8.5vw,7.3rem)",
-              lineHeight: 0.92,
-              margin: "1rem 0 1.4rem",
-            }}
-          >
-            Make more room for{" "}
-            <em style={{ color: "var(--teal)" }}>teaching.</em>
+          <h1 className="display hero-title">
+            Run every teaching day from one <em>intelligent workspace.</em>
           </h1>
-          <p
-            style={{
-              color: "var(--muted)",
-              fontSize: "clamp(1.05rem,2vw,1.3rem)",
-              lineHeight: 1.7,
-              maxWidth: 760,
-              margin: "0 auto 2rem",
-            }}
-          >
-            EduGrade AI brings planning, classroom work, handwritten
-            submissions, teacher-reviewed feedback, communication, and learning
-            insights for CBSE Classes 6–12 into one calm workspace.
+          <p>
+            Plan lessons, create material, assign work, collect handwritten
+            answers, review with context, communicate clearly, and understand
+            progress—without stitching together five different tools.
           </p>
-          <div
-            style={{
-              display: "flex",
-              gap: ".75rem",
-              justifyContent: "center",
-              flexWrap: "wrap",
-            }}
-          >
+          <div className="hero-actions">
             <Link className="btn btn-primary" href="/register">
-              Create your account <ArrowRight size={17} />
+              Start teaching smarter <ArrowRight size={17} />
             </Link>
-            <Link className="btn btn-secondary" href="/login">
-              Sign in
-            </Link>
-            <a className="btn btn-secondary" href="#cycle">
-              See the teaching cycle
+            <a className="btn btn-secondary" href="#platform">
+              Explore the classroom OS
             </a>
           </div>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: ".5rem",
-              justifyContent: "center",
-              marginTop: "2.4rem",
-            }}
-          >
-            {cycle.map((item, index) => (
-              <span
-                key={item}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: ".5rem",
-                  color: "var(--navy)",
-                  fontSize: ".8rem",
-                  fontWeight: 800,
-                }}
-              >
-                <span
-                  style={{
-                    width: 25,
-                    height: 25,
-                    display: "grid",
-                    placeItems: "center",
-                    borderRadius: 7,
-                    background:
-                      index % 2 ? "var(--coral-soft)" : "var(--teal-soft)",
-                  }}
-                >
-                  {index + 1}
-                </span>
-                {item}
-              </span>
-            ))}
+          <div className="trust-note">
+            <ShieldCheck size={16} color="var(--teal)" />
+            AI suggests. Teachers review, edit, and decide.
+          </div>
+        </div>
+
+        <div className="product-stage" aria-label="EduGrade teacher workspace preview">
+          <div className="product-window">
+            <div className="window-bar">
+              <span />
+              <span />
+              <span />
+              <div className="window-title">Teacher workspace · Live preview</div>
+            </div>
+            <div className="preview-shell">
+              <div className="preview-nav">
+                <div className="preview-logo">EduGrade AI</div>
+                {["Overview", "Classes", "AI studio", "Assignments", "Review", "Analytics"].map(
+                  (label, index) => (
+                    <span
+                      className={`preview-link${index === 0 ? " active" : ""}`}
+                      key={label}
+                    >
+                      {label}
+                    </span>
+                  ),
+                )}
+              </div>
+              <div className="preview-content">
+                <h3>Your teaching command centre</h3>
+                <p>Four items need your attention today.</p>
+                <div className="preview-metrics">
+                  <div className="preview-metric">
+                    <span>Review queue</span>
+                    <strong>12</strong>
+                  </div>
+                  <div className="preview-metric">
+                    <span>Class average</span>
+                    <strong>78%</strong>
+                  </div>
+                  <div className="preview-metric">
+                    <span>Time assisted</span>
+                    <strong>86m</strong>
+                  </div>
+                </div>
+                <div className="preview-grid">
+                  <div className="preview-panel">
+                    <strong>Priority queue</strong>
+                    {[
+                      "Review Partnership Test responses",
+                      "Publish Unit 3 assignment",
+                      "Complete Class 8 attendance",
+                    ].map((task) => (
+                      <div className="preview-task" key={task}>
+                        <i /> {task}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="preview-panel">
+                    <strong>Completion pulse</strong>
+                    <div className="preview-chart" aria-hidden="true">
+                      {[44, 62, 55, 74, 66, 82, 91].map((height, index) => (
+                        <span key={index} style={{ height: `${height}%` }} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
-      <section
-        id="cycle"
-        style={{
-          padding: "clamp(4rem,8vw,7rem) clamp(1rem,6vw,6rem)",
-          background: "var(--navy)",
-          color: "white",
-        }}
-      >
-        <div style={{ maxWidth: 1200, margin: "auto" }}>
-          <div className="eyebrow" style={{ color: "#81ded5" }}>
-            One connected classroom
+
+      <div className="cycle-rail" aria-label="Complete teaching cycle">
+        {cycle.map((item, index) => (
+          <div className="cycle-step" key={item}>
+            <span>0{index + 1}</span>
+            {item}
           </div>
-          <h2
-            className="display"
-            style={{
-              fontSize: "clamp(2.4rem,5vw,4.4rem)",
-              margin: ".5rem 0 2.5rem",
-              maxWidth: 720,
-            }}
-          >
-            Less tool-hopping. More useful teaching signals.
+        ))}
+      </div>
+
+      <section className="marketing-section" id="platform">
+        <div className="section-inner">
+          <div className="eyebrow">One connected classroom</div>
+          <h2 className="display section-heading">
+            Less coordination overhead. More useful teaching signals.
+          </h2>
+          <div className="feature-bento">
+            <article className="feature-card feature-card-large">
+              <div className="feature-number">01 / AI STUDIO</div>
+              <Bot size={32} color="#8ce1d5" style={{ marginTop: "2rem" }} />
+              <h3>From rough idea to teacher-ready draft.</h3>
+              <p>
+                Create lesson plans, explanations, notes, questions, quizzes,
+                revision sheets, feedback, and announcements in a guided
+                workspace. Every AI output stays editable and clearly marked as
+                a suggestion.
+              </p>
+              <div className="approval-flow">
+                <div className="approval-step">
+                  <span>Drafted</span>
+                  AI prepares a starting point
+                </div>
+                <div className="approval-step">
+                  <span>Reviewed</span>
+                  Teacher checks and edits
+                </div>
+                <div className="approval-step">
+                  <span>Approved</span>
+                  Teacher controls publishing
+                </div>
+              </div>
+            </article>
+            <article className="feature-card">
+              <div className="feature-number">02 / ANSWER REVIEW</div>
+              <Camera size={26} color="var(--teal)" style={{ marginTop: "1.4rem" }} />
+              <h3>Handwritten work, organised.</h3>
+              <p>
+                Students upload ordered answer pages with previews and checks.
+                Teachers review every page in context before marks or feedback
+                are published.
+              </p>
+            </article>
+            <article className="feature-card">
+              <div className="feature-number">03 / LEARNING SIGNALS</div>
+              <BarChart3 size={26} color="var(--indigo)" style={{ marginTop: "1.4rem" }} />
+              <h3>Evidence that leads to a useful next step.</h3>
+              <p>
+                See completion, results, attendance, topic patterns, and
+                workload assistance without turning suggestions into academic
+                decisions.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section className="marketing-section" id="roles">
+        <div className="section-inner">
+          <div className="eyebrow">Built for both sides of the classroom</div>
+          <h2 className="display section-heading">
+            A precise workspace for teachers. A clear next step for students.
+          </h2>
+          <div className="role-grid">
+            <article className="role-card role-card-teacher">
+              <Users size={28} color="#8ce1d5" />
+              <h3 className="display">Teacher command centre</h3>
+              <p>
+                Manage classes, create material, publish assignments, review
+                submissions, track participation, and act on evidence from one
+                protected workspace.
+              </p>
+              <Link href="/register" className="btn btn-secondary">
+                Create teacher account <ArrowRight size={16} />
+              </Link>
+            </article>
+            <article className="role-card role-card-student">
+              <FileText size={28} color="var(--indigo)" />
+              <h3 className="display">Student learning path</h3>
+              <p>
+                Join classes, see upcoming work, upload answer pages, attempt
+                quizzes, read published feedback, and revise with transparent
+                AI support.
+              </p>
+              <Link href="/register" className="btn btn-primary">
+                Create student account <ArrowRight size={16} />
+              </Link>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section className="marketing-section marketing-section-dark" id="trust">
+        <div className="section-inner">
+          <div className="eyebrow" style={{ color: "#8ce1d5" }}>
+            Designed around teacher control
+          </div>
+          <h2 className="display section-heading">
+            Useful AI should strengthen judgment—not replace it.
           </h2>
           <div className="grid-auto">
             {[
               [
-                Bot,
-                "Editable AI teaching tools",
-                "Plans, explanations, notes, questions, quizzes and revision sheets.",
-              ],
-              [
-                Camera,
-                "Photo answer submission",
-                "Ordered previews, upload checks, and a teacher-friendly review surface.",
+                Sparkles,
+                "Reviewable suggestions",
+                "Generated content is labelled, editable, and never published automatically.",
               ],
               [
                 ClipboardCheck,
-                "Teacher-controlled feedback",
-                "AI can suggest. Teachers edit, decide marks, and control publishing.",
-              ],
-              [
-                BarChart3,
-                "Actionable progress",
-                "Completion, scores, attendance, weak topics, and workload saved.",
-              ],
-              [
-                Users,
-                "Real class workflows",
-                "Class codes, enrollment, announcements, resources and participation.",
+                "Teacher-owned decisions",
+                "Final teaching choices, evaluation, marks, and feedback remain under teacher control.",
               ],
               [
                 ShieldCheck,
-                "Built for trust",
-                "Role protection, server validation, secure sessions and honest AI limits.",
+                "Protected workflows",
+                "Role-based access, server validation, secure sessions, and private file handling protect classroom work.",
+              ],
+              [
+                CheckCircle2,
+                "Honest learning support",
+                "Student assistance guides understanding and revision without claiming perfect or final answers.",
               ],
             ].map(([Icon, title, copy]) => {
               const I = Icon as typeof Sparkles;
               return (
-                <article
-                  key={String(title)}
-                  style={{
-                    borderTop: "1px solid #53647a",
-                    padding: "1.3rem 0",
-                  }}
-                >
-                  <I color="#7fd9d1" />
-                  <h3 style={{ margin: ".8rem 0 .5rem" }}>{String(title)}</h3>
-                  <p style={{ color: "#b9c5d2", lineHeight: 1.6, margin: 0 }}>
+                <article key={String(title)} style={{ padding: "1rem 0" }}>
+                  <I color="#8ce1d5" />
+                  <h3 style={{ margin: ".85rem 0 .45rem" }}>{String(title)}</h3>
+                  <p style={{ color: "#b9c5d6", lineHeight: 1.7, margin: 0 }}>
                     {String(copy)}
                   </p>
                 </article>
@@ -218,49 +285,37 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <section
-        style={{ padding: "clamp(4rem,8vw,7rem) 1rem", textAlign: "center" }}
-      >
-        <Clock3 size={34} color="var(--coral)" style={{ margin: "auto" }} />
-        <h2
-          className="display"
-          style={{
-            fontSize: "clamp(2.5rem,6vw,5rem)",
-            margin: "1rem auto",
-            maxWidth: 850,
-          }}
-        >
-          Smart Teaching. Faster Feedback. Better Learning.
-        </h2>
-        <p
-          style={{
-            color: "var(--muted)",
-            maxWidth: 620,
-            margin: "0 auto 1.5rem",
-            lineHeight: 1.7,
-          }}
-        >
-          Create a protected Class 6–12 teacher or student workspace, or use
-          the optional seeded Class 12 Accountancy preview.
-        </p>
-        <Link className="btn btn-primary" href="/login">
-          Enter EduGrade AI <ArrowRight size={17} />
-        </Link>
+
+      <section className="marketing-section" style={{ textAlign: "center" }}>
+        <div className="section-inner">
+          <div className="eyebrow">Ready for the complete teaching cycle</div>
+          <h2
+            className="display section-heading"
+            style={{ marginInline: "auto" }}
+          >
+            Smart Teaching. Faster Feedback. Better Learning.
+          </h2>
+          <p
+            style={{
+              maxWidth: 650,
+              margin: "0 auto 1.6rem",
+              color: "var(--muted)",
+              lineHeight: 1.75,
+            }}
+          >
+            Create a protected Class 6–12 workspace or use the seeded expo
+            scenario to explore the full teacher-to-student flow.
+          </p>
+          <Link className="btn btn-primary" href="/login">
+            Enter EduGrade AI <ArrowRight size={17} />
+          </Link>
+        </div>
       </section>
-      <footer
-        style={{
-          borderTop: "1px solid var(--line)",
-          padding: "1.5rem clamp(1rem,5vw,5rem)",
-          display: "flex",
-          justifyContent: "space-between",
-          gap: "1rem",
-          flexWrap: "wrap",
-          color: "var(--muted)",
-          fontSize: ".8rem",
-        }}
-      >
-        <Logo />
-        <span>AI assists. Teachers decide.</span>
+
+      <footer className="marketing-footer">
+        <span>© 2026 EduGrade AI</span>
+        <span>Smart Teaching. Faster Feedback. Better Learning.</span>
+        <Link href="/about">Project information & AI safety</Link>
       </footer>
     </main>
   );

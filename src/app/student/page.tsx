@@ -2,12 +2,10 @@ import Link from "next/link";
 import {
   ArrowRight,
   BookOpenCheck,
-  CheckCircle2,
   Clock3,
   Flame,
   GraduationCap,
   Megaphone,
-  School,
   Sparkles,
 } from "lucide-react";
 import { requireUser } from "@/lib/auth";
@@ -102,23 +100,13 @@ export default async function StudentDashboard() {
           </Link>
         }
       />
-      <div className="grid-auto">
+      <div className="metric-strip">
         <StatCard
-          label="Joined classes"
-          value={enrollments.length}
-          icon={School}
-        />
-        <StatCard
-          label="Pending assignments"
+          label="Pending work"
           value={pending.length}
           detail={pending[0] ? relativeDue(pending[0].dueAt) : "Nothing due"}
           icon={Clock3}
           tone="coral"
-        />
-        <StatCard
-          label="Completed"
-          value={completed.length}
-          icon={CheckCircle2}
         />
         <StatCard
           label="Recent mark"
@@ -132,7 +120,7 @@ export default async function StudentDashboard() {
           tone="gold"
         />
         <StatCard
-          label="Average score"
+          label="Average"
           value={results.length ? `${average}%` : "—"}
           icon={BookOpenCheck}
         />
@@ -144,22 +132,29 @@ export default async function StudentDashboard() {
           tone="coral"
         />
       </div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0,1.25fr) minmax(300px,.75fr)",
-          gap: "1rem",
-          marginTop: "1rem",
-        }}
-      >
+      <div className="facts-strip" aria-label="Supporting student metrics">
+        <div className="fact">
+          <span>Joined classes</span>
+          <strong>{enrollments.length}</strong>
+        </div>
+        <div className="fact">
+          <span>Completed work</span>
+          <strong>{completed.length}</strong>
+        </div>
+        <div className="fact">
+          <span>Published results</span>
+          <strong>{results.length}</strong>
+        </div>
+      </div>
+      <div className="dashboard-grid">
         <section className="card card-pad">
-          <div className="eyebrow">Upcoming work</div>
-          <h2
-            className="display"
-            style={{ fontSize: "1.8rem", margin: ".3rem 0 1rem" }}
-          >
-            Your next deadlines
-          </h2>
+          <div className="panel-head">
+            <div>
+              <div className="eyebrow">Now & next</div>
+              <h2>Your next deadlines</h2>
+            </div>
+            <Clock3 color="var(--indigo)" />
+          </div>
           {pending.length ? (
             pending.slice(0, 5).map((assignment) => (
               <Link
@@ -205,11 +200,11 @@ export default async function StudentDashboard() {
           )}
           <Link
             href="/student/assignments"
-            style={{
-              display: "inline-flex",
-              gap: 5,
-              alignItems: "center",
-              color: "var(--teal)",
+              style={{
+                display: "inline-flex",
+                gap: 5,
+                alignItems: "center",
+                color: "var(--indigo)",
               fontWeight: 800,
               fontSize: ".82rem",
               marginTop: "1rem",
@@ -219,12 +214,9 @@ export default async function StudentDashboard() {
           </Link>
         </section>
         <aside style={{ display: "grid", gap: "1rem" }}>
-          <section className="card card-pad">
+          <section className="card card-pad recommendation-box">
             <div className="eyebrow">Study tip</div>
-            <h2
-              className="display"
-              style={{ fontSize: "1.55rem", margin: ".3rem 0 .5rem" }}
-            >
+            <h2 style={{ fontSize: "1.35rem", margin: ".4rem 0 .5rem" }}>
               {weakTopic
                 ? `Revisit ${weakTopic.topic}`
                 : "Build your first evidence trail"}
@@ -237,7 +229,7 @@ export default async function StudentDashboard() {
             <Link
               href="/student/ai-help"
               style={{
-                color: "var(--teal)",
+                color: "var(--indigo)",
                 fontWeight: 800,
                 fontSize: ".82rem",
               }}

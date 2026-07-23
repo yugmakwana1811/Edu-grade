@@ -2,40 +2,12 @@ import Link from "next/link";
 import { Sparkles } from "lucide-react";
 export function Logo({ light = false }: { light?: boolean }) {
   return (
-    <Link
-      href="/"
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: ".65rem",
-        fontWeight: 900,
-        color: light ? "white" : "var(--navy)",
-      }}
-    >
-      <span
-        style={{
-          width: 36,
-          height: 36,
-          display: "grid",
-          placeItems: "center",
-          borderRadius: 10,
-          color: "white",
-          background: "var(--coral)",
-          transform: "rotate(-3deg)",
-        }}
-      >
+    <Link href="/" className={`brand-logo${light ? " brand-logo-light" : ""}`}>
+      <span className="brand-mark">
         <Sparkles size={19} />
       </span>
-      <span style={{ fontSize: "1.08rem" }}>
-        EduGrade{" "}
-        <em
-          style={{
-            color: light ? "#7fe0d6" : "var(--teal)",
-            fontStyle: "normal",
-          }}
-        >
-          AI
-        </em>
+      <span className="brand-wordmark">
+        EduGrade <em>AI</em>
       </span>
     </Link>
   );

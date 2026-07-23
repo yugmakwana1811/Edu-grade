@@ -17,31 +17,72 @@ import {
   Users,
 } from "lucide-react";
 import { Logo } from "./logo";
+import { AppNavLink } from "./app-nav-link";
 import { logoutAction } from "@/app/actions";
 import { initials } from "@/lib/utils";
 import type { Role } from "@prisma/client";
 
 type LinkItem = { href: string; label: string; icon: LucideIcon };
-const teacherLinks: LinkItem[] = [
-  { href: "/teacher", label: "Overview", icon: Home },
-  { href: "/teacher/classes", label: "Classes", icon: Users },
-  { href: "/teacher/ai-tools", label: "AI studio", icon: Bot },
-  { href: "/teacher/assignments", label: "Assignments", icon: FileText },
-  { href: "/teacher/quizzes", label: "Quizzes", icon: FileQuestion },
-  { href: "/teacher/review", label: "Review work", icon: ClipboardCheck },
-  { href: "/teacher/resources", label: "Resources", icon: Library },
-  { href: "/teacher/announcements", label: "Announcements", icon: Megaphone },
-  { href: "/teacher/attendance", label: "Attendance", icon: CalendarCheck },
-  { href: "/teacher/analytics", label: "Analytics", icon: ChartNoAxesCombined },
+type LinkGroup = { label: string; items: LinkItem[] };
+const teacherGroups: LinkGroup[] = [
+  {
+    label: "Workspace",
+    items: [
+      { href: "/teacher", label: "Overview", icon: Home },
+      { href: "/teacher/classes", label: "Classes", icon: Users },
+    ],
+  },
+  {
+    label: "Plan & teach",
+    items: [
+      { href: "/teacher/ai-tools", label: "AI studio", icon: Bot },
+      { href: "/teacher/resources", label: "Resources", icon: Library },
+    ],
+  },
+  {
+    label: "Assess",
+    items: [
+      { href: "/teacher/assignments", label: "Assignments", icon: FileText },
+      { href: "/teacher/quizzes", label: "Quizzes", icon: FileQuestion },
+      { href: "/teacher/review", label: "Review work", icon: ClipboardCheck },
+    ],
+  },
+  {
+    label: "Operations",
+    items: [
+      { href: "/teacher/announcements", label: "Announcements", icon: Megaphone },
+      { href: "/teacher/attendance", label: "Attendance", icon: CalendarCheck },
+      {
+        href: "/teacher/analytics",
+        label: "Analytics",
+        icon: ChartNoAxesCombined,
+      },
+    ],
+  },
 ];
-const studentLinks: LinkItem[] = [
-  { href: "/student", label: "Overview", icon: Home },
-  { href: "/student/classes", label: "My classes", icon: School },
-  { href: "/student/assignments", label: "Assignments", icon: FileText },
-  { href: "/student/results", label: "Results", icon: ClipboardCheck },
-  { href: "/student/quizzes", label: "Quizzes", icon: BookOpen },
-  { href: "/student/ai-help", label: "AI study help", icon: Bot },
-  { href: "/student/analytics", label: "Progress", icon: ChartNoAxesCombined },
+const studentGroups: LinkGroup[] = [
+  {
+    label: "Workspace",
+    items: [
+      { href: "/student", label: "Overview", icon: Home },
+      { href: "/student/classes", label: "My classes", icon: School },
+    ],
+  },
+  {
+    label: "Learning",
+    items: [
+      { href: "/student/assignments", label: "Assignments", icon: FileText },
+      { href: "/student/quizzes", label: "Quizzes", icon: BookOpen },
+      { href: "/student/results", label: "Results", icon: ClipboardCheck },
+    ],
+  },
+  {
+    label: "Support & insights",
+    items: [
+      { href: "/student/ai-help", label: "AI study help", icon: Bot },
+      { href: "/student/analytics", label: "Progress", icon: ChartNoAxesCombined },
+    ],
+  },
 ];
 export function AppShell({
   user,
@@ -50,7 +91,8 @@ export function AppShell({
   user: { name: string; role: Role };
   children: React.ReactNode;
 }) {
-  const links = user.role === "TEACHER" ? teacherLinks : studentLinks;
+  const groups = user.role === "TEACHER" ? teacherGroups : studentGroups;
+  const links = groups.flatMap((group) => group.items);
   const mobile = [
     links[0],
     links[1],
@@ -59,89 +101,50 @@ export function AppShell({
   ];
   return (
     <div className="shell">
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
       <aside className="sidebar">
-        <Logo light />
-        <div
-          className="eyebrow"
-          style={{ color: "#80d6ce", marginTop: "1.6rem" }}
-        >
-          {user.role === "TEACHER" ? "Teacher workspace" : "Student workspace"}
+        <div className="sidebar-brand">
+          <Logo light />
+          <span className="workspace-chip">
+            {user.role === "TEACHER" ? "Teacher" : "Student"} workspace
+          </span>
         </div>
-        <nav>
-          {links.map(({ href, label, icon: Icon }) => (
-            <Link className="nav-link" href={href} key={href}>
-              <Icon size={18} />
-              {label}
-            </Link>
+        <nav aria-label="Workspace navigation">
+          {groups.map((group) => (
+            <div className="nav-group" key={group.label}>
+              <div className="nav-group-label">{group.label}</div>
+              {group.items.map(({ href, label, icon: Icon }) => (
+                <AppNavLink
+                  href={href}
+                  label={label}
+                  icon={<Icon size={18} />}
+                  key={href}
+                />
+              ))}
+            </div>
           ))}
         </nav>
-        <div
-          style={{
-            marginTop: "auto",
-            borderTop: "1px solid rgba(255,255,255,.12)",
-            paddingTop: "1rem",
-            display: "flex",
-            alignItems: "center",
-            gap: ".7rem",
-          }}
-        >
-          <span
-            style={{
-              width: 37,
-              height: 37,
-              display: "grid",
-              placeItems: "center",
-              background: "var(--coral)",
-              borderRadius: 10,
-              fontWeight: 900,
-            }}
-          >
-            {initials(user.name)}
-          </span>
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <strong
-              style={{
-                display: "block",
-                fontSize: ".83rem",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {user.name}
-            </strong>
-            <Link
-              href="/account"
-              style={{
-                fontSize: ".72rem",
-                color: "#aebdcb",
-                display: "inline-flex",
-                gap: 4,
-                alignItems: "center",
-              }}
-            >
+        <div className="sidebar-account">
+          <span className="avatar">{initials(user.name)}</span>
+          <div className="account-copy">
+            <strong>{user.name}</strong>
+            <Link href="/account">
               <Settings size={11} /> Account settings
             </Link>
           </div>
           <form action={logoutAction}>
-            <button
-              aria-label="Sign out"
-              style={{
-                border: 0,
-                color: "#dbe3eb",
-                background: "transparent",
-                cursor: "pointer",
-              }}
-            >
+            <button aria-label="Sign out" className="icon-button icon-button-dark">
               <LogOut size={17} />
             </button>
           </form>
         </div>
       </aside>
-      <main className="shell-main">
+      <main className="shell-main" id="main-content">
         <header className="topbar">
-          <div>
-            <strong style={{ fontSize: ".9rem" }}>
+          <div className="topbar-greeting">
+            <strong>
               Good{" "}
               {new Date().getHours() < 12
                 ? "morning"
@@ -151,29 +154,29 @@ export function AppShell({
               , {user.name.split(" ")[0]}
             </strong>
             <div className="hint hide-mobile">
-              Smart teaching, one thoughtful step at a time.
+              Smart Teaching. Faster Feedback. Better Learning.
             </div>
           </div>
-          <Link
-            href="/about"
-            className="btn btn-secondary"
-            style={{
-              minHeight: 38,
-              padding: ".45rem .8rem",
-              fontSize: ".8rem",
-            }}
-          >
-            About EduGrade
-          </Link>
+          <div className="topbar-actions">
+            <span className="secure-status">
+              <span aria-hidden="true" />
+              Protected workspace
+            </span>
+            <Link href="/about" className="topbar-link">
+              Help & about
+            </Link>
+          </div>
         </header>
         {children}
       </main>
       <nav className="mobile-nav">
         {mobile.map(({ href, label, icon: Icon }) => (
-          <Link href={href} key={href}>
-            <Icon size={20} />
-            <span>{label}</span>
-          </Link>
+          <AppNavLink
+            href={href}
+            label={label}
+            icon={<Icon size={18} />}
+            key={href}
+          />
         ))}
       </nav>
     </div>
