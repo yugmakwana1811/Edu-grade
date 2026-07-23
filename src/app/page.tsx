@@ -315,7 +315,7 @@ export default function Home() {
       <footer className="marketing-footer">
         <span>© 2026 EduGrade AI</span>
         <span>Smart Teaching. Faster Feedback. Better Learning.</span>
-        <Link href="/about">Project information & AI safety</Link>
+        <Link href="/about">Product information & AI safety</Link>
       </footer>
     </main>
   );

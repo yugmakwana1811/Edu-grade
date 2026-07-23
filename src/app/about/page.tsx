@@ -24,7 +24,7 @@ export default function About() {
       >
         <Logo />
         <Link href="/login" className="btn btn-primary">
-          Open demo
+          Open EduGrade
         </Link>
       </header>
       <div
@@ -46,7 +46,7 @@ export default function About() {
           <ArrowLeft size={16} /> Home
         </Link>
         <div className="eyebrow" style={{ marginTop: "2.5rem" }}>
-          About the project
+          About EduGrade AI
         </div>
         <h1
           className="display"
@@ -92,7 +92,7 @@ export default function About() {
             [
               Sparkles,
               "Replaceable AI",
-              "Vercel AI Gateway is optional; safe deterministic generation keeps the demo functional.",
+              "A secure provider abstraction supports resilient, reviewable AI-assisted classroom workflows.",
             ],
           ].map(([I, t, d]) => {
             const Icon = I as typeof Database;
@@ -118,13 +118,14 @@ export default function About() {
           className="display"
           style={{ fontSize: "2.5rem", marginTop: "3rem" }}
         >
-          Designed for a CBSE Skill Expo. Engineered beyond one.
+          Built to solve real classroom problems.
         </h2>
         <p style={{ color: "var(--muted)", lineHeight: 1.8 }}>
-          The seeded Class 12 Commerce — Accountancy scenario demonstrates a
-          connected workflow from teacher planning to a student’s handwritten
-          response and a published, teacher-edited result. No AI output is
-          silently assigned, and AI never makes the final academic decision.
+          EduGrade AI is a real-world application that connects teacher
+          planning, classroom content, assignments, handwritten student
+          responses, review, feedback, results, communication, and progress
+          insights in one protected workflow. No AI output is silently
+          assigned, and AI never makes the final academic decision.
         </p>
       </div>
     </main>
