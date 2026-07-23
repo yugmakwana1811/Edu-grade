@@ -11,7 +11,10 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
+import { DiaTextReveal } from "@/components/dia-text-reveal";
+import { FloatingTooltip } from "@/components/floating-tooltip";
 import { Logo } from "@/components/logo";
+import { MotionNavigationMenu } from "@/components/motion-navigation-menu";
 
 const cycle = [
   "Plan",
@@ -29,12 +32,7 @@ export default function Home() {
     <main className="marketing">
       <header className="marketing-nav">
         <Logo />
-        <nav className="marketing-links" aria-label="Product navigation">
-          <a href="#platform">Platform</a>
-          <a href="#roles">For teachers & students</a>
-          <a href="#trust">Trust & AI safety</a>
-          <Link href="/about">About</Link>
-        </nav>
+        <MotionNavigationMenu />
         <div className="marketing-actions">
           <Link className="btn btn-secondary" href="/login">
             Sign in
@@ -52,7 +50,8 @@ export default function Home() {
             6–12
           </div>
           <h1 className="display hero-title">
-            Run every teaching day from one <em>intelligent workspace.</em>
+            Run every teaching day from one{" "}
+            <DiaTextReveal text="intelligent workspace." />
           </h1>
           <p>
             Plan lessons, create material, assign work, collect handwritten
@@ -68,7 +67,12 @@ export default function Home() {
             </a>
           </div>
           <div className="trust-note">
-            <ShieldCheck size={16} color="var(--teal)" />
+            <FloatingTooltip
+              content="AI output remains a suggestion until a teacher reviews it."
+              placement="top"
+            >
+              <ShieldCheck size={16} color="var(--teal)" />
+            </FloatingTooltip>
             AI suggests. Teachers review, edit, and decide.
           </div>
         </div>
@@ -156,7 +160,10 @@ export default function Home() {
             Less coordination overhead. More useful teaching signals.
           </h2>
           <div className="feature-bento">
-            <article className="feature-card feature-card-large">
+            <article
+              className="feature-card feature-card-large"
+              id="ai-studio"
+            >
               <div className="feature-number">01 / AI STUDIO</div>
               <Bot size={32} color="#8ce1d5" style={{ marginTop: "2rem" }} />
               <h3>From rough idea to teacher-ready draft.</h3>
@@ -181,7 +188,7 @@ export default function Home() {
                 </div>
               </div>
             </article>
-            <article className="feature-card">
+            <article className="feature-card" id="answer-review">
               <div className="feature-number">02 / ANSWER REVIEW</div>
               <Camera size={26} color="var(--teal)" style={{ marginTop: "1.4rem" }} />
               <h3>Handwritten work, organised.</h3>
@@ -191,7 +198,7 @@ export default function Home() {
                 are published.
               </p>
             </article>
-            <article className="feature-card">
+            <article className="feature-card" id="learning-signals">
               <div className="feature-number">03 / LEARNING SIGNALS</div>
               <BarChart3 size={26} color="var(--indigo)" style={{ marginTop: "1.4rem" }} />
               <h3>Evidence that leads to a useful next step.</h3>
@@ -212,7 +219,10 @@ export default function Home() {
             A precise workspace for teachers. A clear next step for students.
           </h2>
           <div className="role-grid">
-            <article className="role-card role-card-teacher">
+            <article
+              className="role-card role-card-teacher"
+              id="teacher-workspace"
+            >
               <Users size={28} color="#8ce1d5" />
               <h3 className="display">Teacher command centre</h3>
               <p>
@@ -224,7 +234,10 @@ export default function Home() {
                 Create teacher account <ArrowRight size={16} />
               </Link>
             </article>
-            <article className="role-card role-card-student">
+            <article
+              className="role-card role-card-student"
+              id="student-workspace"
+            >
               <FileText size={28} color="var(--indigo)" />
               <h3 className="display">Student learning path</h3>
               <p>

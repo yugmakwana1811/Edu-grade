@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Logo } from "./logo";
 import { AppNavLink } from "./app-nav-link";
+import { FloatingTooltip } from "./floating-tooltip";
 import { logoutAction } from "@/app/actions";
 import { initials } from "@/lib/utils";
 import type { Role } from "@prisma/client";
@@ -135,9 +136,11 @@ export function AppShell({
             </Link>
           </div>
           <form action={logoutAction}>
-            <button aria-label="Sign out" className="icon-button icon-button-dark">
-              <LogOut size={17} />
-            </button>
+            <FloatingTooltip content="Sign out" placement="right">
+              <button aria-label="Sign out" className="icon-button icon-button-dark">
+                <LogOut size={17} />
+              </button>
+            </FloatingTooltip>
           </form>
         </div>
       </aside>
