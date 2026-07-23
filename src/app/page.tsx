@@ -13,7 +13,9 @@ import {
 } from "lucide-react";
 import { DiaTextReveal } from "@/components/dia-text-reveal";
 import { FloatingTooltip } from "@/components/floating-tooltip";
+import { HoverExpand } from "@/components/hover-expand";
 import { Logo } from "@/components/logo";
+import { MotionAccordion } from "@/components/motion-accordion";
 import { MotionNavigationMenu } from "@/components/motion-navigation-menu";
 
 const cycle = [
@@ -25,6 +27,70 @@ const cycle = [
   "Support",
   "Communicate",
   "Analyse",
+];
+
+const teachingMoments = [
+  {
+    label: "Plan with a strong starting point",
+    sublabel: "Plan",
+    image: "/marketing/teacher-planning.jpg",
+    imageAlt: "Teacher planning a lesson with a tablet and notebook",
+    description: "Create editable lessons, notes, questions, and revision material.",
+  },
+  {
+    label: "Teach with the right explanation",
+    sublabel: "Teach",
+    image: "/marketing/classroom-teaching.jpg",
+    imageAlt: "Teacher leading an engaged classroom discussion",
+    description: "Adapt explanations and resources to the class in front of you.",
+  },
+  {
+    label: "Collect work without the paper chase",
+    sublabel: "Collect",
+    image: "/marketing/answer-upload.jpg",
+    imageAlt: "Student photographing ordered handwritten answer pages",
+    description: "Students submit ordered handwritten pages from any device.",
+  },
+  {
+    label: "Turn evidence into the next action",
+    sublabel: "Analyse",
+    image: "/marketing/learning-analytics.jpg",
+    imageAlt: "Teacher reviewing classroom progress analytics on a laptop",
+    description: "See progress patterns while keeping every decision teacher-led.",
+  },
+];
+
+const frequentlyAskedQuestions = [
+  {
+    question: "Does EduGrade AI decide marks or final feedback?",
+    answer:
+      "No. AI creates editable suggestions only. Teachers review the work, decide marks, edit feedback, and explicitly publish the final result.",
+  },
+  {
+    question: "Which classes and subjects are supported?",
+    answer:
+      "EduGrade supports Classes 6 through 12 with grade-aware CBSE subject catalogs, including core subjects, languages, electives, skill subjects, and internal-assessment areas.",
+  },
+  {
+    question: "How does subject-aware AI model selection work?",
+    answer:
+      "EduGrade selects from a server-controlled allowlist based on the subject and task. Users cannot override the chosen model, and safe fallback content remains available if every permitted provider request fails.",
+  },
+  {
+    question: "Can students submit handwritten answers?",
+    answer:
+      "Yes. Students can upload multiple answer-page images, preview the order, remove incorrect pages, complete a submission checklist, and track the submission after it is sent.",
+  },
+  {
+    question: "Is classroom information protected by role?",
+    answer:
+      "Yes. Teacher and student routes are protected separately, requests are validated on the server, sessions use secure cookies, and private files are served through authenticated endpoints.",
+  },
+  {
+    question: "Can AI-generated material be edited before use?",
+    answer:
+      "Always. Lesson plans, notes, explanations, questions, feedback, revision sheets, and announcements remain reviewable drafts until a teacher approves the next action.",
+  },
 ];
 
 export default function Home() {
@@ -253,6 +319,24 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="marketing-section workflow-showcase">
+        <div className="section-inner">
+          <div className="workflow-showcase-head">
+            <div>
+              <div className="eyebrow">The workflow, not another tool</div>
+              <h2 className="display section-heading">
+                Built around the moments that shape a teaching day.
+              </h2>
+            </div>
+            <p>
+              Move across the complete classroom cycle without losing context,
+              control, or the human judgment learning depends on.
+            </p>
+          </div>
+          <HoverExpand items={teachingMoments} />
+        </div>
+      </section>
+
       <section className="marketing-section marketing-section-dark" id="trust">
         <div className="section-inner">
           <div className="eyebrow" style={{ color: "#8ce1d5" }}>
@@ -296,6 +380,26 @@ export default function Home() {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      <section className="marketing-section faq-section" id="faq">
+        <div className="section-inner faq-layout">
+          <div className="faq-intro">
+            <div className="eyebrow">Clear answers, upfront</div>
+            <h2 className="display section-heading">
+              What schools, teachers, and students usually ask.
+            </h2>
+            <p>
+              EduGrade combines practical classroom workflows with explicit
+              teacher control, protected access, and honest AI boundaries.
+            </p>
+            <Link href="/about" className="text-link">
+              Read product information & AI safety{" "}
+              <ArrowRight size={15} aria-hidden="true" />
+            </Link>
+          </div>
+          <MotionAccordion items={frequentlyAskedQuestions} />
         </div>
       </section>
 
