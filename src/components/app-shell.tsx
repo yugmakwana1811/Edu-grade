@@ -108,7 +108,7 @@ export function AppShell({
       </a>
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <Logo light />
+          <Logo />
           <span className="workspace-chip">
             {user.role === "TEACHER" ? "Teacher" : "Student"} workspace
           </span>
@@ -147,6 +147,9 @@ export function AppShell({
       </aside>
       <main className="shell-main" id="main-content">
         <header className="topbar">
+          <span className="topbar-role">
+            {user.role === "TEACHER" ? "Teacher workspace" : "Student workspace"}
+          </span>
           <div className="topbar-greeting">
             <strong>
               Good{" "}

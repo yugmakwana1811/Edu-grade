@@ -111,7 +111,7 @@ export default function Home() {
       </header>
 
       <section className="marketing-hero hero-pattern">
-        <div className="hero-copy">
+        <div className="hero-copy hero-copy-centered">
           <div className="hero-kicker">
             <Sparkles size={14} /> AI-powered classroom operations · Classes
             6–12
@@ -144,7 +144,25 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="product-stage" aria-label="EduGrade teacher workspace preview">
+        <div className="hero-proof" aria-label="EduGrade platform highlights">
+          <div>
+            <strong>6–12</strong>
+            <span>Complete CBSE class coverage</span>
+          </div>
+          <div>
+            <strong>40</strong>
+            <span>Connected classroom capabilities</span>
+          </div>
+          <div>
+            <strong>100%</strong>
+            <span>Teacher-controlled publishing</span>
+          </div>
+        </div>
+
+        <div
+          className="product-stage hero-product-stage"
+          aria-label="EduGrade teacher workspace preview"
+        >
           <div className="product-window">
             <div className="window-bar">
               <span />

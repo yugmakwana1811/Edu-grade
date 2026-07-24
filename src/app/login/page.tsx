@@ -17,101 +17,22 @@ export default async function Login({
 }) {
   const { error } = await searchParams;
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "grid",
-        gridTemplateColumns: "minmax(0,1.05fr) minmax(320px,.95fr)",
-      }}
-    >
-      <section
-        className="hero-pattern hide-mobile"
-        style={{
-          backgroundColor: "var(--navy)",
-          color: "white",
-          padding: "clamp(2rem,6vw,6rem)",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <Logo light />
-        <div style={{ margin: "auto 0", maxWidth: 620 }}>
-          <div className="eyebrow" style={{ color: "#83ddd4" }}>
-            Connected classroom platform
-          </div>
-          <h1
-            className="display"
-            style={{
-              fontSize: "clamp(3.3rem,6vw,6rem)",
-              lineHeight: 0.94,
-              margin: ".8rem 0 1.5rem",
-            }}
-          >
-            A calmer way to run the teaching cycle.
-          </h1>
-          <div style={{ display: "grid", gap: ".8rem", color: "#cad4df" }}>
-            {[
-              "Plan and create editable teaching material",
-              "Collect and review handwritten work",
-              "Publish teacher-approved feedback and insights",
-            ].map((x) => (
-              <div
-                key={x}
-                style={{ display: "flex", alignItems: "center", gap: ".7rem" }}
-              >
-                <CheckCircle2 size={18} color="#82ddd4" />
-                {x}
-              </div>
-            ))}
-          </div>
-        </div>
-        <small style={{ color: "#97a7b8" }}>
-          Secure role-based access · Teacher-controlled AI
-        </small>
-      </section>
-      <section
-        style={{
-          padding: "clamp(1.2rem,7vw,7rem)",
-          display: "grid",
-          placeItems: "center",
-          background: "white",
-        }}
-      >
-        <div style={{ width: "min(440px,100%)" }}>
-          <Link
-            href="/"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: ".4rem",
-              color: "var(--muted)",
-              fontSize: ".82rem",
-              marginBottom: "2rem",
-            }}
-          >
-            <ArrowLeft size={16} /> Back to home
+    <main className="auth-shell">
+      <section className="auth-main">
+        <div className="auth-main-bar">
+          <Logo />
+          <Link href="/" className="auth-back-link">
+            <ArrowLeft size={16} /> Home
           </Link>
+        </div>
+        <div className="auth-form-wrap">
           <div className="eyebrow">Welcome back</div>
-          <h1
-            className="display"
-            style={{
-              fontSize: "clamp(2.5rem,6vw,4rem)",
-              margin: ".4rem 0 .7rem",
-            }}
-          >
-            Open your workspace
-          </h1>
-          <p
-            style={{
-              color: "var(--muted)",
-              lineHeight: 1.6,
-              marginBottom: "1.5rem",
-            }}
-          >
+          <h1 className="display auth-title">Open your workspace</h1>
+          <p className="auth-description">
             Sign in to your protected teacher or student workspace.
           </p>
           <Alert error={error} />
-          <form action={loginAction} style={{ display: "grid", gap: "1rem" }}>
+          <form action={loginAction} className="auth-form">
             <label>
               <span className="label">Email address</span>
               <input
@@ -137,13 +58,8 @@ export default async function Login({
               Sign in securely
             </SubmitButton>
           </form>
-          <details
-            className="card"
-            style={{ marginTop: "1rem", padding: ".8rem" }}
-          >
-            <summary
-              style={{ cursor: "pointer", fontWeight: 800, fontSize: ".82rem" }}
-            >
+          <details className="auth-preview">
+            <summary>
               Expo preview accounts
             </summary>
             <div
@@ -187,10 +103,7 @@ export default async function Login({
               </small>
             </div>
           </details>
-          <p
-            className="hint"
-            style={{ textAlign: "center", marginTop: "1.2rem" }}
-          >
+          <p className="hint auth-footnote">
             New to EduGrade?{" "}
             <Link
               href="/register"
@@ -199,15 +112,32 @@ export default async function Login({
               Create a teacher or student account
             </Link>
           </p>
-          <p
-            className="hint"
-            style={{ textAlign: "center", marginTop: ".7rem" }}
-          >
+          <p className="hint auth-footnote auth-security-copy">
             Authentication uses hashed passwords, rate limiting, database
             sessions, and HTTP-only cookies.
           </p>
         </div>
       </section>
+      <aside className="auth-aside">
+        <div className="auth-aside-index">01 / ACCESS</div>
+        <div>
+          <div className="eyebrow">Connected classroom platform</div>
+          <h2 className="display">One secure entry point for the whole teaching cycle.</h2>
+          <div className="auth-benefits">
+            {[
+              "Plan and create editable teaching material",
+              "Collect and review handwritten work",
+              "Publish teacher-approved feedback and insights",
+            ].map((item) => (
+              <div key={item}>
+                <CheckCircle2 size={17} />
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+        <small>Secure role-based access · Teacher-controlled AI</small>
+      </aside>
     </main>
   );
 }
