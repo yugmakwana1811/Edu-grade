@@ -3755,3 +3755,580 @@ body > main[style*="grid-template-columns"] .display {
     font-size: 2.4rem;
   }
 }
+
+/* Cool light visual system */
+:root {
+  color-scheme: light;
+  --ink: #223148;
+  --ink-soft: #46576d;
+  --muted: #617187;
+  --paper: #f4f8fb;
+  --surface: #ffffff;
+  --surface-raised: #fbfdff;
+  --surface-subtle: #edf3f7;
+  --surface-tint: #e8f1f7;
+  --line: #d9e4ec;
+  --line-strong: #bfd0dc;
+  --navy: #223148;
+  --navy-soft: #dfeaf2;
+  --teal: #287981;
+  --teal-hover: #226871;
+  --teal-soft: #e8f4f4;
+  --indigo: #466fae;
+  --indigo-hover: #385f99;
+  --indigo-soft: #eaf1fb;
+  --coral: #a7566a;
+  --coral-soft: #f9edf1;
+  --gold: #80662f;
+  --gold-soft: #f9f5e9;
+  --danger: #a34052;
+  --danger-soft: #fbedf0;
+  --danger-line: #e7c5cc;
+  --success: #25745f;
+  --success-soft: #e8f4ef;
+  --success-line: #bdddcf;
+  --warning: #80662f;
+  --warning-ink: #6f5728;
+  --warning-soft: #f9f5e9;
+  --warning-line: #e3d6b5;
+  --focus: rgba(70, 111, 174, 0.3);
+  --chart-blue: #5d82b9;
+  --chart-blue-soft: #c9d9ec;
+  --chart-teal: #4d8f95;
+  --chart-teal-soft: #c4dcde;
+  --chart-periwinkle: #7d8fbd;
+  --chart-slate: #7890a6;
+  --shadow-sm: 0 2px 8px rgba(45, 74, 99, 0.055);
+  --shadow: 0 12px 34px rgba(45, 74, 99, 0.075);
+  --shadow-lg: 0 24px 64px rgba(45, 74, 99, 0.1);
+}
+
+html,
+body,
+.shell,
+.shell-main {
+  color: var(--ink);
+  background-color: var(--paper);
+}
+
+body {
+  background-image: linear-gradient(180deg, #f8fbfd 0%, var(--paper) 52%, #f2f7fa 100%);
+}
+
+::selection {
+  color: var(--ink);
+  background: #cfdef1;
+}
+
+:where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+input,
+textarea,
+select {
+  accent-color: var(--indigo);
+}
+
+button:disabled,
+input:disabled,
+textarea:disabled,
+select:disabled,
+[aria-disabled="true"] {
+  color: #7d8da1;
+  border-color: #d8e2e9;
+  background-color: #edf2f6;
+}
+
+.brand-mark,
+.loading-brand-mark,
+.loading-progress span {
+  color: #ffffff;
+  background: var(--indigo);
+  box-shadow: 0 7px 18px rgba(70, 111, 174, 0.18);
+}
+
+.brand-wordmark em,
+.brand-logo:not(.brand-logo-light) .brand-wordmark em {
+  color: var(--indigo);
+}
+
+.brand-logo-light {
+  color: var(--ink);
+}
+
+.card,
+.metric-strip,
+.preview-metric,
+.preview-panel,
+.feature-atlas-card,
+.feature-atlas-summary,
+.motion-faq,
+.auth-preview {
+  color: var(--ink);
+  border-color: var(--line);
+  background-color: var(--surface);
+}
+
+.card,
+.metric-strip,
+.product-stage,
+.motion-nav-viewport,
+.loading-panel {
+  box-shadow: var(--shadow-sm);
+}
+
+a.card:hover,
+.feature-atlas-card:hover {
+  border-color: var(--line-strong);
+  background-color: var(--surface-raised);
+  box-shadow: var(--shadow);
+}
+
+.btn-primary {
+  color: #ffffff;
+  border-color: var(--indigo);
+  background: var(--indigo);
+}
+
+.btn-primary:hover {
+  color: #ffffff;
+  border-color: var(--indigo-hover);
+  background: var(--indigo-hover);
+}
+
+.btn-primary:active {
+  background: #315687;
+}
+
+.btn-secondary {
+  color: var(--ink);
+  border-color: var(--line-strong);
+  background: var(--surface);
+}
+
+.btn-secondary:hover {
+  color: var(--ink);
+  border-color: #aabfcd;
+  background: var(--surface-subtle);
+}
+
+.btn-danger {
+  color: var(--danger);
+  border-color: var(--danger-line);
+  background: var(--danger-soft);
+}
+
+.btn-danger:hover {
+  color: #843544;
+  border-color: #d9abb5;
+  background: #f8e3e8;
+}
+
+.btn:disabled,
+.btn:disabled:hover,
+.btn[aria-disabled="true"],
+.btn[aria-disabled="true"]:hover {
+  color: #718197;
+  border-color: #d5e0e8;
+  background: #e8eef3;
+  box-shadow: none;
+  opacity: 0.82;
+}
+
+.field {
+  color: var(--ink);
+  border-color: var(--line-strong);
+  background: var(--surface);
+}
+
+.field::placeholder {
+  color: #8291a3;
+}
+
+.field:hover {
+  border-color: #9fb7c7;
+}
+
+.field:focus,
+.field:focus-visible {
+  border-color: var(--indigo);
+  box-shadow: 0 0 0 3px rgba(70, 111, 174, 0.13);
+}
+
+.badge {
+  color: var(--ink-soft);
+  border-color: var(--line);
+  background: var(--surface-subtle);
+}
+
+.badge-teal {
+  color: #22666d;
+  border-color: #c3dddf;
+  background: var(--teal-soft);
+}
+
+.badge-coral {
+  color: #8f4557;
+  border-color: #e4c7ce;
+  background: var(--coral-soft);
+}
+
+.alert-error {
+  color: var(--danger);
+  border-color: var(--danger-line);
+  background: var(--danger-soft);
+}
+
+.alert-success {
+  color: var(--success);
+  border-color: var(--success-line);
+  background: var(--success-soft);
+}
+
+.recommendation-box {
+  color: var(--ink-soft);
+  border-color: #c5dcdf;
+  background: #edf7f7;
+}
+
+.priority-panel {
+  color: var(--ink);
+  border-color: var(--line);
+  background: var(--surface-raised);
+}
+
+.progress {
+  background: #e2ebf1;
+}
+
+.progress > span,
+.preview-chart span {
+  background: var(--chart-blue);
+}
+
+table {
+  color: var(--ink-soft);
+  background: var(--surface);
+}
+
+th {
+  color: var(--ink);
+  background: var(--surface-subtle);
+}
+
+td,
+th {
+  border-color: var(--line);
+}
+
+tbody tr:hover {
+  background: #f6fafc;
+}
+
+.sidebar {
+  color: var(--ink);
+  border-right-color: var(--line);
+  background: #f9fcfe;
+}
+
+.sidebar-brand,
+.sidebar-account {
+  border-color: var(--line);
+}
+
+.workspace-chip {
+  color: var(--muted);
+  border-color: var(--line);
+  background: var(--surface);
+}
+
+.nav-group-label {
+  color: #718297;
+}
+
+.nav-link {
+  color: var(--ink-soft);
+}
+
+.nav-link:hover {
+  color: var(--ink);
+  background: var(--surface-subtle);
+}
+
+.nav-link[aria-current="page"] {
+  color: #315b91;
+  background: var(--indigo-soft);
+  box-shadow: inset 2px 0 0 var(--indigo);
+}
+
+.nav-link[aria-current="page"] .nav-icon {
+  color: var(--indigo);
+}
+
+.avatar,
+.nav-icon {
+  color: var(--ink-soft);
+  border-color: var(--line);
+  background: var(--surface-subtle);
+}
+
+.topbar,
+.mobile-nav {
+  color: var(--ink);
+  border-color: var(--line);
+  background: rgba(248, 252, 254, 0.96);
+  box-shadow: 0 1px 12px rgba(45, 74, 99, 0.045);
+}
+
+.topbar-link,
+.icon-button-dark,
+.account-copy a {
+  color: var(--muted);
+}
+
+.topbar-link:hover,
+.icon-button-dark:hover {
+  color: var(--ink);
+  background: var(--surface-subtle);
+}
+
+.marketing {
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.marketing-nav {
+  color: var(--ink);
+  border-color: var(--line);
+  background: rgba(251, 253, 255, 0.96);
+}
+
+.motion-nav-trigger,
+.motion-nav-link,
+.motion-nav-card {
+  color: var(--ink-soft);
+}
+
+.motion-nav-trigger:hover,
+.motion-nav-trigger:focus-visible,
+.motion-nav-trigger[aria-expanded="true"],
+.motion-nav-link:hover,
+.motion-nav-link:focus-visible,
+.motion-nav-card:hover,
+.motion-nav-card:focus-visible {
+  color: var(--ink);
+  background: var(--surface-subtle);
+}
+
+.motion-nav-viewport {
+  color: var(--ink);
+  border-color: var(--line);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow);
+}
+
+.motion-nav-card-icon,
+.motion-faq-icon,
+.loading-orbit-core {
+  color: var(--indigo);
+  border-color: var(--line);
+  background: var(--indigo-soft);
+}
+
+.dia-text-reveal {
+  background-image: linear-gradient(90deg, #466fae, #4d8f95);
+}
+
+.product-stage {
+  border-color: var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.window-bar,
+.preview-content {
+  background: var(--surface-raised);
+}
+
+.preview-nav {
+  color: var(--ink-soft);
+  border-right: 1px solid var(--line);
+  background: var(--surface-tint);
+}
+
+.preview-logo {
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.preview-link {
+  color: var(--muted);
+}
+
+.preview-link.active {
+  color: #315b91;
+  background: var(--indigo-soft);
+}
+
+.feature-atlas-section,
+.workflow-showcase,
+.auth-aside {
+  background: #f2f7fa;
+}
+
+.feature-atlas-filters,
+.feature-atlas-count {
+  color: var(--ink-soft);
+  border-color: var(--line);
+  background: var(--surface);
+}
+
+.feature-atlas-filter {
+  color: var(--ink-soft);
+}
+
+.feature-atlas-filter[aria-selected="true"] {
+  color: #ffffff;
+}
+
+.feature-atlas-filter-active {
+  background: var(--indigo);
+}
+
+.feature-atlas-icon {
+  color: var(--indigo);
+  border-color: #d1dfeb;
+  background: var(--indigo-soft);
+}
+
+.feature-atlas-card li svg,
+.approval-step span,
+.feature-card-large .approval-step span {
+  color: var(--teal);
+}
+
+.feature-card,
+.feature-card-large,
+.role-card,
+.role-card-teacher,
+.role-card-student {
+  color: var(--ink);
+  border-color: var(--line);
+  background: var(--surface);
+}
+
+.feature-card-large,
+.role-card-teacher {
+  background-image: linear-gradient(145deg, #f7fbfe, #eaf2f8);
+}
+
+.feature-card p,
+.feature-card-large p,
+.role-card p {
+  color: var(--muted);
+}
+
+.feature-number,
+.feature-card-large .feature-number {
+  color: var(--indigo);
+}
+
+.approval-step {
+  color: var(--ink-soft);
+  border-color: var(--line);
+  background: transparent;
+}
+
+.marketing-section-dark {
+  color: var(--ink);
+  background: #eaf2f7;
+}
+
+.marketing-section-dark h2,
+.marketing-section-dark h3 {
+  color: var(--ink);
+}
+
+.marketing-section-dark article {
+  border-color: var(--line);
+}
+
+.hover-expand-shade {
+  background: linear-gradient(90deg, rgba(28, 48, 70, 0.78), rgba(28, 48, 70, 0.2));
+}
+
+.motion-faq-item + .motion-faq-item {
+  border-color: var(--line);
+}
+
+.motion-faq-trigger {
+  color: var(--ink);
+}
+
+.motion-faq-answer {
+  color: var(--muted);
+}
+
+.floating-tooltip-portal {
+  color: var(--ink);
+  border-color: var(--line-strong);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow);
+}
+
+.loading-screen {
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.loading-panel {
+  border-color: var(--line);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow);
+}
+
+.auth-shell,
+.auth-main {
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.auth-aside {
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.auth-benefits,
+.auth-benefits > div,
+.auth-preview {
+  border-color: var(--line);
+}
+
+.auth-preview .card {
+  border-color: var(--line);
+}
+
+:where(
+  .btn,
+  .field,
+  .nav-link,
+  .topbar-link,
+  .icon-button-dark,
+  .motion-nav-trigger,
+  .motion-nav-link,
+  .motion-nav-card,
+  .feature-atlas-filter,
+  .motion-faq-trigger,
+  .hover-expand-item
+):focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (max-width: 860px) {
+  .mobile-nav {
+    background: rgba(248, 252, 254, 0.98);
+  }
+}

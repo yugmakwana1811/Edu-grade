@@ -269,7 +269,7 @@ export default function Home() {
               id="ai-studio"
             >
               <div className="feature-number">01 / AI STUDIO</div>
-              <Bot size={32} color="#8ce1d5" style={{ marginTop: "2rem" }} />
+              <Bot size={32} color="var(--teal)" style={{ marginTop: "2rem" }} />
               <h3>From rough idea to teacher-ready draft.</h3>
               <p>
                 Create lesson plans, explanations, notes, questions, quizzes,
@@ -327,7 +327,7 @@ export default function Home() {
               className="role-card role-card-teacher"
               id="teacher-workspace"
             >
-              <Users size={28} color="#8ce1d5" />
+              <Users size={28} color="var(--teal)" />
               <h3 className="display">Teacher command centre</h3>
               <p>
                 Manage classes, create material, publish assignments, review
@@ -377,7 +377,7 @@ export default function Home() {
 
       <section className="marketing-section marketing-section-dark" id="trust">
         <div className="section-inner">
-          <div className="eyebrow" style={{ color: "#8ce1d5" }}>
+          <div className="eyebrow" style={{ color: "var(--teal)" }}>
             Designed around teacher control
           </div>
           <h2 className="display section-heading">
@@ -409,9 +409,9 @@ export default function Home() {
               const I = Icon as typeof Sparkles;
               return (
                 <article key={String(title)} style={{ padding: "1rem 0" }}>
-                  <I color="#8ce1d5" />
+                  <I color="var(--teal)" />
                   <h3 style={{ margin: ".85rem 0 .45rem" }}>{String(title)}</h3>
-                  <p style={{ color: "#b9c5d6", lineHeight: 1.7, margin: 0 }}>
+                  <p style={{ color: "var(--muted)", lineHeight: 1.7, margin: 0 }}>
                     {String(copy)}
                   </p>
                 </article>

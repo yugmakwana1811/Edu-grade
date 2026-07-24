@@ -103,7 +103,7 @@ export default async function AIHelp({
             style={{
               marginTop: "1rem",
               padding: ".8rem",
-              background: "#f5f6f4",
+              background: "var(--surface-subtle)",
               borderRadius: 10,
             }}
           >

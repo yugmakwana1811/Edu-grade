@@ -124,7 +124,7 @@ export default async function StudentAssignment({
             style={{
               marginTop: "1.2rem",
               padding: ".8rem",
-              background: "#fffaf0",
+              background: "var(--gold-soft)",
               borderRadius: 10,
             }}
           >

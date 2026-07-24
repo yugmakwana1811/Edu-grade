@@ -98,7 +98,7 @@ export default async function ReviewDetail({
                       width: "100%",
                       aspectRatio: "3/4",
                       objectFit: "contain",
-                      background: "#efefeb",
+                      background: "var(--surface-subtle)",
                       borderRadius: 10,
                     }}
                   />
@@ -199,7 +199,7 @@ export default async function ReviewDetail({
                   gap: ".6rem",
                   alignItems: "flex-start",
                   padding: ".8rem",
-                  background: "#f5f6f4",
+                  background: "var(--surface-subtle)",
                   borderRadius: 10,
                 }}
               >

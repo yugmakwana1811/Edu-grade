@@ -105,13 +105,13 @@ export function HoverExpand({
               <span className="hover-expand-main">
                 <motion.span
                   className="hover-expand-number"
-                  animate={{ color: isActive ? "#ffffff" : "#64748b" }}
+                  animate={{ color: isActive ? "#ffffff" : "var(--muted)" }}
                 >
                   {String(index + 1).padStart(2, "0")}
                 </motion.span>
                 <motion.span
                   className="hover-expand-label"
-                  animate={{ color: isActive ? "#ffffff" : "#0b1220" }}
+                  animate={{ color: isActive ? "#ffffff" : "var(--ink)" }}
                 >
                   {item.label}
                 </motion.span>
@@ -136,7 +136,7 @@ export function HoverExpand({
               <motion.span
                 className="hover-expand-meta"
                 animate={{
-                  color: isActive ? "rgba(255,255,255,.72)" : "#64748b",
+                  color: isActive ? "rgba(255,255,255,.82)" : "var(--muted)",
                 }}
               >
                 {item.sublabel}

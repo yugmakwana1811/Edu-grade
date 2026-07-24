@@ -19,7 +19,7 @@ export default function About() {
           justifyContent: "space-between",
           alignItems: "center",
           borderBottom: "1px solid var(--line)",
-          background: "white",
+          background: "var(--surface)",
         }}
       >
         <Logo />

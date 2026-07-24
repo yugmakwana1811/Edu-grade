@@ -181,7 +181,7 @@ export default async function StudentAnalytics() {
                       background:
                         index === scores.slice(-8).length - 1
                           ? "var(--teal)"
-                          : "#b8d9d5",
+                          : "var(--chart-teal-soft)",
                       borderRadius: "8px 8px 2px 2px",
                     }}
                   />

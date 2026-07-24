@@ -68,7 +68,7 @@ export default async function Login({
             >
               <div
                 className="card"
-                style={{ padding: ".8rem", background: "#f8fbfa" }}
+                style={{ padding: ".8rem", background: "var(--teal-soft)" }}
               >
                 <GraduationCap size={18} color="var(--teal)" />
                 <strong
@@ -84,7 +84,7 @@ export default async function Login({
               </div>
               <div
                 className="card"
-                style={{ padding: ".8rem", background: "#fff9f7" }}
+                style={{ padding: ".8rem", background: "var(--indigo-soft)" }}
               >
                 <ShieldCheck size={18} color="var(--coral)" />
                 <strong

@@ -35,10 +35,10 @@ export function UploadField({
           display: "grid",
           placeItems: "center",
           padding: "1.5rem",
-          border: "1.5px dashed #a9c6c2",
+          border: "1.5px dashed var(--line-strong)",
           borderRadius: 14,
           cursor: disabled ? "wait" : "pointer",
-          background: "#f5fbfa",
+          background: "var(--teal-soft)",
           textAlign: "center",
           opacity: disabled ? 0.65 : 1,
         }}

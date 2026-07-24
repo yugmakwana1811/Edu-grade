@@ -162,7 +162,7 @@ export default async function TeacherDashboard() {
             </strong>
             <p
               style={{
-                color: "#42615e",
+                color: "var(--teal)",
                 lineHeight: 1.55,
                 margin: ".35rem 0 .7rem",
               }}

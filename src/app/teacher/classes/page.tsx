@@ -87,7 +87,7 @@ export default async function TeacherClasses({
                       alignItems: "center",
                       justifyContent: "space-between",
                       marginTop: "1rem",
-                      background: "#f5f6f4",
+                      background: "var(--surface-subtle)",
                       padding: ".65rem",
                       borderRadius: 9,
                     }}
